@@ -1,6 +1,6 @@
 # CoCreate-indexeddb
 
-A simple indexeddb component in vanilla javascript. Easily configured using HTML5 data-attributes and/or JavaScript API. Take it for a spin in our [playground!](https://cocreate.app/docs/indexeddb)
+an indexeddb wrapper. Easily crud data using HTML5 attribute API and/or JavaScript API. Take it for a spin in our [playground!](https://cocreate.app/docs/indexeddb)
 
 ![min file size in bytes](https://img.badgesize.io/https://cdn.cocreate.app/indexeddb/latest/CoCreate-indexeddb.min.js?style=flat-square&label=minified&color=orange)
 ![gzip file size in bytes](https://img.badgesize.io/https://cdn.cocreate.app/indexeddb/latest/CoCreate-indexeddb.min.js?compression=gzip&style=flat-square&label=gzip&color=yellow)
