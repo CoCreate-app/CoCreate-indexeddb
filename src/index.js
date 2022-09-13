@@ -6,8 +6,9 @@
  ********************************************************************************/
 // import observer from "@cocreate/observer"
 // import crud from '@cocreate/crud'
+// import crud from '@cocreate/crud-client'
 import {dotNotationToObject} from '@cocreate/utils'
-import {searchData, sortData, queryData} from '@cocreate/filter'
+import {searchData, sortData, queryData} from '@cocreate/filter/src/filter'
 
 const createDatabase = (data) => {
     return new Promise((resolve, reject) => {
@@ -471,30 +472,44 @@ const createDocument = (data) => {
     })
 }
 
-const readDocument = (data) => {
+const readDocument = (data, db, collection) => {
     return new Promise((resolve, reject) => {
-        let openRequest = indexedDB.open(data.database);
-
-        openRequest.onsuccess = function() {
-            let db = openRequest.result;
-            let transaction = db.transaction([data.collection], "readwrite");
-            let collection = transaction.objectStore(data.collection);
+        if (db && collection) {
             let request = collection.get(data.data._id);
-            
+                
             request.onsuccess = function() {
-                db.close()
-                resolve(request.result)
+                data.data = request.result
+                resolve(data)
             };
             
             request.onerror = function() {
-                db.close()
                 reject(request.error)
             };
-        };
+        } else {
+            let openRequest = indexedDB.open(data.database);
 
-        openRequest.onerror = function() {
-            reject(openRequest.error)
-        };
+            openRequest.onsuccess = function() {
+                let db = openRequest.result;
+                let transaction = db.transaction([data.collection], "readwrite");
+                let collection = transaction.objectStore(data.collection);
+                let request = collection.get(data.data._id);
+                
+                request.onsuccess = function() {
+                    db.close()
+                    data.data = request.result
+                    resolve(data)
+                };
+                
+                request.onerror = function() {
+                    db.close()
+                    reject(request.error)
+                };
+            };
+
+            openRequest.onerror = function() {
+                reject(openRequest.error)
+            };
+        }
     })
 }
 
@@ -506,7 +521,6 @@ const updateDocument = (data) => {
            
             if (!data.data._id && data.upsert == true) {
                 data.data['_id'] = ObjectId() 
-                document = false
             }
             if (!data.data._id) {
                 db.close()
@@ -579,74 +593,75 @@ const readDocuments = (data) => {
             let transaction = db.transaction([data.collection], "readonly");
             let collection = transaction.objectStore(data.collection);
             let results = [];
-            // for (let filter of data.filters) {
-                // if (!collection.indexNames.contains(filter.name)) {
-                //     db.close()
-                //     createIndex(data.database, data.collection, filter.name).then(() => {
-                //         database(data).then((db) => {
-                //             let transaction = db.transaction([data.collection], "readonly");
-                //             transaction.oncomplete = resolve(results);
-                            
-                //             let collection = transaction.objectStore(data.collection);
-                //             collection = transaction.objectStore(data.collection);
-                    
-                //             let index = collection.index(filter.name);
-                //             let request = index.openCursor(IDBKeyRange.upperBound(filter.value));
-            
-                //             // called for each record
-                //             request.onsuccess = function() {
-                //                 let isFilter;
-                //                 let cursor = request.result;
-                //                 if (cursor) {
-                //                     let value = cursor.value;
-                //                     if (data.filter)
-                //                         isFilter = filter.queryData(value, data.filter);
-                //                     if (isFilter)
-                //                         results.push(value)
-                //                     cursor.continue();
-                //                 } else {
-                //                     console.log("No more documents");
-                //                 }
-                //             };
-                                                                
-                //             request.onerror = function() {
-                //                 reject(request.error)
-                //             };
-    
-                //         });
-                //     });
-                // } else {
-                    // let index = collection.index(filter.name);
-                    // let request = index.openCursor(IDBKeyRange.upperBound(filter.value));
-                    let request = collection.openCursor();
-                    transaction.oncomplete = resolve(results);
+                // let index = collection.index(filter.name);
+                // let request = index.openCursor(IDBKeyRange.upperBound(filter.value));
+                let request = collection.openCursor();
+                // transaction.oncomplete = resolve(results);
 
-                    request.onsuccess = function() {
-                        let isFilter;
-                        let cursor = request.result;
-                        if (cursor) {
-                            let value = cursor.value;
-                            if (data.filter && data.filter.query)
-                                isFilter = queryData(value, data.filter.query);
-                            if (isFilter !== false)
-                                results.push(value)
-                            cursor.continue();
+                request.onsuccess = function() {
+                    let isFilter;
+                    let cursor = request.result;
+                    if (cursor) {
+                        let value = cursor.value;
+                        if (data.filter && data.filter.query)
+                            isFilter = queryData(value, data.filter.query);
+                        if (isFilter !== false)
+                            results.push(value)
+                        cursor.continue();
+                    } else {
+                        if (data.filter) {
+                            if (data.filter.search)
+                                data.data = searchData(results, data.filter)
+                            if (data.filter.sort)
+                                data.data = sortData(data.data, data.filter.sort)
+                                if (!data.filter.search && !data.filter.sort)
+                                    data.data = results
                         } else {
-                            if (data.filter) {
-                                if (data.filter.search)
-                                    data.data = searchData(results, data.filter)
-                                if (data.filter.sort)
-                                    data.data = sortData(data.data, data.filter.sort)
-                            }
-                            resolve(data)
+                            data.data = results
                         }
-                    };
-                    
-                    request.onerror = function() {
-                        reject(request.error)
-                    };
-                // }
-            // }
+                        resolve(data)
+                    }
+                };
+                
+                request.onerror = function() {
+                    reject(request.error)
+                };
+        };
+
+        openRequest.onerror = function() {
+            reject(openRequest.error)
+        };
+    })
+}
+const sync = (action, data) => {
+    return new Promise((resolve, reject) => {
+        let openRequest = indexedDB.open(data.database);
+        
+        openRequest.onsuccess = function() {
+            let db = openRequest.result;
+            let transaction = db.transaction([data.collection], "readonly");
+            let collection = transaction.objectStore(data.collection);
+            
+            if (Array.isArray(data.data)) {
+                for (let item of data.data) {
+                    readDocument(item, db, collection).then((doc) => {
+                        if (doc.modified.on < item.modifed.on) {
+                            collection.put(item)
+                        }
+
+                    })
+                }
+            } else {
+                readDocument(item, db, collection).then((doc) => {
+                    if (doc.modified.on < item.modifed.on) {
+                        collection.put(item)
+                    }
+
+                })
+            }
+
+            db.close()
+            resolve('synced')
         };
 
         openRequest.onerror = function() {
@@ -664,12 +679,12 @@ function init() {
     if (!('indexedDB' in window)) {
         console.log("This browser doesn't support IndexedDB.");
         return;
-    }
-}
+    } else { }
+ }
 
 init();
 
-export default {
+export {
     database,
     createDatabase,
     readDatabase,
@@ -693,5 +708,6 @@ export default {
     updateDocument, 
     deleteDocument, 
 
+    sync,
     ObjectId
 };
