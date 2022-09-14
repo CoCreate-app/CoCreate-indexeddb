@@ -123,7 +123,7 @@ const database = (data) => {
         openRequest.onsuccess = function() {
             let db = openRequest.result;
             let collectionExist = db.objectStoreNames.contains(data.collection)
-            if (!collectionExist || data.upgrade == true) { 
+            if (data.collection && !collectionExist || data.upgrade == true) { 
                 let version = openRequest.result.version
                 db.close()
                 
