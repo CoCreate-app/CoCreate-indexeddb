@@ -590,9 +590,11 @@ const readDocuments = (data) => {
         
         openRequest.onsuccess = function() {
             let db = openRequest.result;
-            let transaction = db.transaction([data.collection], "readonly");
-            let collection = transaction.objectStore(data.collection);
-            let results = [];
+            try {
+                // var transaction = db.transaction([data.collection], "readonly");
+                let transaction = db.transaction([data.collection], "readonly");
+                let collection = transaction.objectStore(data.collection);
+                let results = [];
                 // let index = collection.index(filter.name);
                 // let request = index.openCursor(IDBKeyRange.upperBound(filter.value));
                 let request = collection.openCursor();
@@ -624,8 +626,16 @@ const readDocuments = (data) => {
                 };
                 
                 request.onerror = function() {
+                    request.data = []
                     reject(request.error)
                 };
+            } catch (err) {
+                data.data = []
+                // data.error = err
+                resolve(data)
+                return 
+            }
+
         };
 
         openRequest.onerror = function() {
