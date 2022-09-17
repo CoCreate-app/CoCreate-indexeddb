@@ -4,9 +4,6 @@
  *
  * SPDX-License-Identifier: MIT
  ********************************************************************************/
-// import observer from "@cocreate/observer"
-// import crud from '@cocreate/crud'
-// import crud from '@cocreate/crud-client'
 import {dotNotationToObject} from '@cocreate/utils'
 import {searchData, sortData, queryData} from '@cocreate/filter/src/filter'
 
