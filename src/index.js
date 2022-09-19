@@ -201,7 +201,14 @@ const readCollections = (data) => {
         openRequest.onsuccess = function() {
             let db = openRequest.result;
             let collections = db.objectStoreNames
-            resolve(collections)
+            data.data = [];
+            
+            for (let collection of Array.from(collections)){
+                data.data.push({name: collection})
+            }
+
+            data.collection = 'collections'
+            resolve(data)
         }
 
         openRequest.onerror = function() {
@@ -483,29 +490,39 @@ const readDocument = (data, db, collection) => {
                 reject(request.error)
             };
         } else {
-            let openRequest = indexedDB.open(data.database);
 
-            openRequest.onsuccess = function() {
-                let db = openRequest.result;
-                let transaction = db.transaction([data.collection], "readwrite");
-                let collection = transaction.objectStore(data.collection);
-                let request = collection.get(data.data._id);
-                
-                request.onsuccess = function() {
-                    db.close()
-                    data.data = request.result
-                    resolve(data)
-                };
-                
-                request.onerror = function() {
-                    db.close()
-                    reject(request.error)
-                };
-            };
+                let openRequest = indexedDB.open(data.database);
 
-            openRequest.onerror = function() {
-                reject(openRequest.error)
-            };
+                openRequest.onsuccess = function() {
+                    try {
+
+                        let db = openRequest.result;
+                        let transaction = db.transaction([data.collection], "readwrite");
+                        let collection = transaction.objectStore(data.collection);
+                        let request = collection.get(data.data._id);
+                        
+                        request.onsuccess = function() {
+                            db.close()
+                            data.data = request.result
+                            resolve(data)
+                        };
+                        
+                        request.onerror = function() {
+                            db.close()
+                            reject(request.error)
+                        };
+                    } catch (err) {
+                        data.data = {}
+                        // data.error = err
+                        resolve(data)
+                        return 
+                    }
+                };
+
+                openRequest.onerror = function() {
+                    reject(openRequest.error)
+                };
+            
         }
     })
 }
@@ -528,6 +545,23 @@ const updateDocument = (data) => {
                     // ToDo: merge objects and update using dot notation
                     if (get.result || data.upsert == true) {
                         data.data = dotNotationToObject(data.data, get.result)
+
+                        if (data.updateName){
+                            for (let [key, value] of Object.entries(data.updateName)){
+                                let val = data.data[key]
+                                delete data.data[key]
+                                data.data[value] = val
+                            }
+
+                        }  
+
+                        if (data.deleteName){
+                            for (let key of Object.keys(data.deleteName)){
+                                delete data.data[key]
+                            }
+
+                        }
+    
                         let put = collection.put(data.data);
                         
                         put.onsuccess = function() {
@@ -608,15 +642,12 @@ const readDocuments = (data) => {
                             results.push(value)
                         cursor.continue();
                     } else {
+                        data.data = results
                         if (data.filter) {
                             if (data.filter.search)
-                                data.data = searchData(results, data.filter)
+                                data.data = searchData(data.data, data.filter)
                             if (data.filter.sort)
                                 data.data = sortData(data.data, data.filter.sort)
-                                if (!data.filter.search && !data.filter.sort)
-                                    data.data = results
-                        } else {
-                            data.data = results
                         }
                         resolve(data)
                     }
