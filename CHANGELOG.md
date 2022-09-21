@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.1.0...v1.1.1) (2022-09-21)
+
+
+### Bug Fixes
+
+* workflow cdn ([dd9bc7d](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/dd9bc7d85aaf46df6a4136935721382a911ad8cc))
+
 # [1.1.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.0.0...v1.1.0) (2022-09-21)
 
 
