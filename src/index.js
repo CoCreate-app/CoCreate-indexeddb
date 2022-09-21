@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: MIT
  ********************************************************************************/
 import {dotNotationToObject} from '@cocreate/utils'
-import {searchData, sortData, queryData} from '@cocreate/filter/src/filter'
+import {searchData, sortData, queryData} from '@cocreate/filter/src/filter.js'
 
 const createDatabase = (data) => {
     return new Promise((resolve, reject) => {
