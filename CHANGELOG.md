@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.1.1...v1.1.2) (2022-09-22)
+
+
+### Bug Fixes
+
+* deploy cdn ([5bd660a](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/5bd660ab3c61c677fd4fa21ae54870bb037cfb24))
+
 ## [1.1.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.1.0...v1.1.1) (2022-09-21)
 
 
