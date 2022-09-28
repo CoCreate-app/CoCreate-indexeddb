@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.2.0...v1.2.1) (2022-09-28)
+
+
+### Bug Fixes
+
+* define database in generateDB ([919b3c8](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/919b3c8a44b1489fde39b7d780da2f1824c7c4a8))
+
 # [1.2.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.1.2...v1.2.0) (2022-09-28)
 
 
