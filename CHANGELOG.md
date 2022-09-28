@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.1.2...v1.2.0) (2022-09-28)
+
+
+### Features
+
+* generateDB to apply minimum data required to indexeddb ([c98f808](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/c98f8089ab9caf13602413b661e81fa2bfb2c966))
+
 ## [1.1.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.1.1...v1.1.2) (2022-09-22)
 
 
