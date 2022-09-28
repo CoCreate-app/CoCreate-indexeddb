@@ -719,6 +719,7 @@ async function generateDB(data) {
 	try {
 		// Create organization 
 		let organization = {
+            database: organization_id,
 			collection: 'organizatons',
 			data: {
 				_id: organization_id,
@@ -732,6 +733,7 @@ async function generateDB(data) {
 		// Create apiKey permission
 		if (organization_id && apiKey) {
 			let permissions = {	
+                database: organization_id,
 				collection: 'permissions',
 				data: {
 					_id: ObjectId(),
@@ -774,6 +776,7 @@ async function generateDB(data) {
 		// Create user
 		if (organization_id) {
 			let user = {
+                database: organization_id,
 				collection: 'users',
 				data: {
 					_id: user_id,
@@ -789,6 +792,7 @@ async function generateDB(data) {
 		// Create role permission
 		if (user_id) {
 			let role = {
+                database: organization_id,
 				collection: 'permissions',
 				data: {
 					_id: ObjectId(),
@@ -812,6 +816,7 @@ async function generateDB(data) {
 			// Create user permission
 			if (role_id) {
 				let data = {
+                    database: organization_id,
 					collection: 'permissions',
 					data: {
 						_id: ObjectId(),
