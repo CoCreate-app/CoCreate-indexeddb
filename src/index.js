@@ -671,6 +671,7 @@ const readDocuments = (data) => {
         };
     })
 }
+
 const sync = (action, data) => {
     return new Promise((resolve, reject) => {
         let openRequest = indexedDB.open(data.database);
@@ -708,6 +709,127 @@ const sync = (action, data) => {
     })
 }
 
+async function generateDB(data){
+	const organization_id = data.organization_id;
+	const apiKey = data.apiKey;
+	
+	let user_id = ObjectId()
+	window.localStorage.setItem('user_id', user_id);
+
+	try {
+		// Create organization 
+		let organization = {
+			collection: 'organizatons',
+			data: {
+				_id: organization_id,
+				name: 'untitled',
+				organization_id,
+				apiKey
+			}
+		}
+		await createDocument(organization);
+
+		// Create apiKey permission
+		if (organization_id && apiKey) {
+			let permissions = {	
+				collection: 'permissions',
+				data: {
+					_id: ObjectId(),
+					organization_id,
+					type: "apikey",
+					key: apiKey,
+					hosts: [
+						"*"
+					],
+					collections: {
+						"organizations": ["read"],
+						"files": ["read"]
+					},
+					documents: {
+						"someid": {
+							"permissions": [""],
+							"fieldNames": {
+								"name": ["read"]
+							}
+						}
+					},
+					"modules": {
+						"actions": [
+							"login",
+							"signin",
+							"userCurrentOrg",
+							"createUser",
+							"createOrg",
+							"runIndustry"
+						],
+						"sendgrid": ["sendEmail"]
+					},
+					"admin": "true"
+				}
+			}
+
+			await createDocument(permissions);
+		}
+
+		// Create user
+		if (organization_id) {
+			let user = {
+				collection: 'users',
+				data: {
+					_id: user_id,
+					password: btoa('0000'),
+					connected_orgs: [organization_id],
+					current_org: organization_id,
+					organization_id: organization_id
+				}
+			}
+			await createDocument(user);
+		}
+
+		// Create role permission
+		if (user_id) {
+			let role = {
+				collection: 'permissions',
+				data: {
+					_id: ObjectId(),
+					organization_id,
+					"type": "role",
+					"name": "admin",
+					"collections": {
+						"*": ["*"]
+					},
+					"modules": {
+						"*": ""
+					},
+					"admin": "true",
+					"hosts": ["*"]
+				}
+			};
+
+			await createDocument(role);
+			let role_id = role.data._id;
+			
+			// Create user permission
+			if (role_id) {
+				let data = {
+					collection: 'permissions',
+					data: {
+						_id: ObjectId(),
+						organization_id,
+						"type": "user_id",
+						"key": user_id,
+						"roles": [role_id]
+					}
+				};
+				await createDocument(data);
+			}
+		}
+        return true			
+		
+	} catch (error) {
+		console.log(error)
+	}
+}
 
 const ObjectId = (rnd = r16 => Math.floor(r16).toString(16)) =>
     rnd(Date.now()/1000) + ' '.repeat(16).replace(/./g, () => rnd(Math.random()*16));
@@ -747,5 +869,6 @@ export {
     deleteDocument, 
 
     sync,
-    ObjectId
+    ObjectId,
+    generateDB
 };
