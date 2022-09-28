@@ -709,7 +709,7 @@ const sync = (action, data) => {
     })
 }
 
-async function generateDB(data){
+async function generateDB(data) {
 	const organization_id = data.organization_id;
 	const apiKey = data.apiKey;
 	
