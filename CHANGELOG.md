@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.2.1...v1.2.2) (2022-09-29)
+
+
+### Bug Fixes
+
+* config renameed to CoCreateConfig ([c626a24](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/c626a24b491ea7739265d4b0c884e00b134027a6))
+
 ## [1.2.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.2.0...v1.2.1) (2022-09-28)
 
 
