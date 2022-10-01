@@ -849,7 +849,7 @@ function init() {
 
 init();
 
-export {
+export default {
     database,
     createDatabase,
     readDatabase,
