@@ -1,3 +1,10 @@
+## [1.2.10](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.2.9...v1.2.10) (2022-10-02)
+
+
+### Bug Fixes
+
+* bump @cocreate/hosting ([a3cabf8](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/a3cabf80b43f02a699cf00d2cf24cd6be1fa2a18))
+
 ## [1.2.9](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.2.8...v1.2.9) (2022-10-02)
 
 
