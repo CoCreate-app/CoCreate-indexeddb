@@ -7,611 +7,639 @@
 import {dotNotationToObject} from '@cocreate/utils'
 import {searchData, sortData, queryData} from '@cocreate/filter/src/filter.js'
 
-const createDatabase = (data) => {
-    return new Promise((resolve, reject) => {
-        
-        let openRequest = indexedDB.open(data.database);
-
-        openRequest.onsuccess = function() {
-            resolve(openRequest.result)
-        };
-
-        openRequest.onerror = function() {
-            reject(openRequest.error)
-        };
-
-    }, (err) => {
-        console.log(err);
-    });
+function createDatabase(data){
+    return Database('createDatabase', data)
 }
 
-const readDatabase = (data) => {
-    return new Promise((resolve, reject) => {
-
-        let openRequest = indexedDB.open(data.database);
-
-        openRequest.onsuccess = function() {
-            let db = openRequest.result;
-            if (data.upgrade == true) { 
-                let version = openRequest.result.version
-                db.close()
-                
-                let request = indexedDB.open(data.database, Number(version += 1));
-                request.onupgradeneeded = function() {
-                    db = request.result
-                };
-        
-                request.onsuccess = function() {
-                    resolve(db)
-                };
-            
-                request.onerror = function() {
-                    reject(request.error)
-                };
-        
-            } else {
-                resolve(db)
-            }
-        };
-
-        openRequest.onerror = function() {
-            reject(openRequest.error)
-        };
-
-    }, (err) => {
-        console.log(err);
-    });
-}
-
-const readDatabases = () => {
-    return new Promise((resolve, reject) => {
-        indexedDB.databases().then((databases) => {
-            resolve(databases)
-        })
-    }, (err) => {
-        console.log(err);
-    });
+const readDatabase = () => {
+    return Database('readDatabase', data)
 }
 
 const updateDatabase = (data) => {
-    return new Promise((resolve, reject) => {
-        
-        let openRequest = indexedDB.open(data.database);
-
-        openRequest.onsuccess = function() {
-            let db = openRequest.result;
-            if (data.newDatabase) { 
-                // function to clone db with new name
-            } else {
-                resolve(db)
-            }
-        };
-
-        openRequest.onerror = function() {
-            reject(openRequest.error)
-        };
-
-    }, (err) => {
-        console.log(err);
-    });
+    return Database('updateDatabase', data)
 }
 
 const deleteDatabase = (data) => {
-    return new Promise((resolve, reject) => {
-        let openRequest = indexedDB.deleteDatabase(data.database);
-
-        openRequest.onsuccess = function() {
-            resolve(openRequest.result);
-        };
-
-        openRequest.onerror = function() {
-            reject(openRequest.error);
-        };
-
-    }, (err) => {
-        console.log(err);
-    });
+    return Database('deleteDatabase', data)
 }
 
-const database = (data) => {
-    return new Promise((resolve, reject) => {
-        let openRequest = indexedDB.open(data.database);
-
-        openRequest.onsuccess = function() {
-            let db = openRequest.result;
-            let collectionExist = db.objectStoreNames.contains(data.collection)
-            if (data.collection && !collectionExist || data.upgrade == true) { 
-                let version = openRequest.result.version
-                db.close()
-                
-                let request = indexedDB.open(data.database, Number(version += 1));
-                request.onupgradeneeded = function() {
-                    if (!collectionExist) {
-                        db = request.result;
-                        db.createObjectStore(data.collection, {keyPath: '_id', autoIncrement: true});
-                    }
-                };
-        
-                request.onsuccess = function() {
-                    resolve(db)
-                };
-            
-                request.onerror = function() {
-                    reject(request.error)
-                };
-        
-            } else {
-                resolve(db)
-            }
-        };
-
-        openRequest.onerror = function() {
-            reject(openRequest.error)
-        };
-
-    }, (err) => {
-        console.log(err);
-    });
+const getDatabase = (data) => {
+    return Database('getDatabase', data)
 }
 
-
-const createCollection = (data) => {
+const dbVersion = new Map()
+const Database = (action, data) => {
     return new Promise((resolve, reject) => {
-        let openRequest = indexedDB.open(data.database);
-
-        openRequest.onsuccess = function() {
-            let db = openRequest.result;
-            if (!db.objectStoreNames.contains(data.collection)) { 
-                let version = openRequest.result.version
-                db.close()
-                
-                let request = indexedDB.open(data.database, Number(version += 1));
-                request.onupgradeneeded = function() {
-                    db = request.result;
-                    db.createObjectStore(data.collection, {keyPath: '_id', autoIncrement: true});
-                };
-        
-                request.onsuccess = function() {
-                    resolve(request.result)
-                };
-            
-                request.onerror = function() {
-                    console.log("Error", request.error);
-                    reject(request.error)
-                };
-        
-            } else {
-                resolve(db)
-            }
-        };
-
-        openRequest.onerror = function() {
-            reject(openRequest.error)
-        };
-
-    }, (err) => {
-        console.log(err);
-    });
-}
-
-const readCollections = (data) => {
-    return new Promise((resolve, reject) => {
-        let openRequest = indexedDB.open(data.database);
-
-        openRequest.onsuccess = function() {
-            let db = openRequest.result;
-            let collections = db.objectStoreNames
-            data.data = [];
-            
-            for (let collection of Array.from(collections)){
-                data.data.push({name: collection})
-            }
-
-            data.collection = 'collections'
-            resolve(data)
-        }
-
-        openRequest.onerror = function() {
-            reject(openRequest.error)
-        };
-
-    }, (err) => {
-        console.log(err);
-    });
-}
-
-const updateCollection = (data) => {
-    return new Promise((resolve, reject) => {
-        let openRequest = indexedDB.open(data.dastabase);
-
-        openRequest.onsuccess = function() {
-            let db = openRequest.result;
-            if (db.objectStoreNames.contains(data.collection)) { 
-                let version = openRequest.result.version
-                db.close()
-                
-                let request = indexedDB.open(data.dastabase, Number(version += 1));
-                request.onupgradeneeded = function() {
-                    let db = request.result;
-                    let transaction = db.transaction([data.collection], "readonly");
-                    let collection = transaction.objectStore(data.collection);
-                    collection.name = data.newCollection
-                }
-
-                request.onsuccess = function() {
-                    db.close()
-                    resolve(request.result)
-                };
-            
-                request.onerror = function() {
-                    reject(request.error)
-                };
-                
-            } else {
-                db.createObjectStore(data.newCollection, {keyPath: '_id', autoIncrement: true})
-                resolve(data.newCollection)
-            }
-        };
-
-        openRequest.onerror = function() {
-            reject(openRequest.error)
-        };
-
-    }, (err) => {
-        console.log(err);
-    });
-}
-
-const deleteCollection = (data) => {
-    return new Promise((resolve, reject) => {
-        let openRequest = indexedDB.open(data.database);
-
-        openRequest.onsuccess = function() {
-            let db = openRequest.result;
-            if (db.objectStoreNames.contains(data.collection)) { 
-                let version = openRequest.result.version
-                db.close()
-                
-                let request = indexedDB.open(data.database, Number(version += 1));
-                request.onupgradeneeded = function() {
-                    db = request.result;
-                    db.deleteObjectStore(data.collection)
-                }
-
-                request.onsuccess = function() {
-                    // let db = request.result;
-                    db.close()
-                    resolve(data.collection)
-                };
-            
-                request.onerror = function() {
-                    reject(request.error)
-                };
-                
-            };
-        };
-    
-        openRequest.onerror = function() {
-            reject(openRequest.error)
-        };
-
-    }, (err) => {
-        console.log(err);
-    });
-}
-
-const createIndex = (data) => {
-    return new Promise((resolve, reject) => {
-        let openRequest = indexedDB.open(data.database);
-
-        openRequest.onsuccess = function() {
-            let db = openRequest.result;
-            let transaction = db.transaction([data.collection], "readonly");
-            let collection = transaction.objectStore(data.collection);
-            
-            if (!collection.indexNames.contains(data.name)){
-                let version = openRequest.result.version
-                db.close()
-                
-                let request = indexedDB.open(data.database, Number(version += 1));
-                request.onupgradeneeded = function() {
-                    db = request.result;
-                    transaction = db.transaction([data.collection], "readonly");
-                    collection = transaction.objectStore(data.collection);
-                    collection.createIndex(data.name, data.name, {unique: false})
-                }
-
-                request.onsuccess = function() {
-                    db.close()
-                    resolve('index created')
-                };
-
-                request.onerror = function() {
-                    reject(request.error)
-                };
-    
-            } else {
-                resolve('index created')
-            }
-        };
-            
-        openRequest.onerror = function() {
-            reject(openRequest.error)
-        };
-    })
-
-
-}
-const readIndex = (data) => {
-    return new Promise((resolve, reject) => {
-        let openRequest = indexedDB.open(data.database);
-
-        openRequest.onsuccess = function() {
-            let db = openRequest.result;
-            let transaction = db.transaction([data.collection], "readonly");
-            let collection = transaction.objectStore(data.collection); 
-            let indexes = collection.indexNames
-            db.close()
-            resolve(indexes)
-        };
-            
-        openRequest.onerror = function() {
-            reject(openRequest.error)
-        };
-    })
-
-}
-
-const updateIndex = (data) => {
-    return new Promise((resolve, reject) => {
-        let openRequest = indexedDB.open(data.database);
-
-        openRequest.onsuccess = function() {
-            let db = openRequest.result;
-            let transaction = db.transaction([data.collection], "readonly");
-            let collection = transaction.objectStore(data.collection);
-            
-            if (collection.indexNames.contains(data.oldName)){
-                let version = openRequest.result.version
-                db.close()
-                
-                let request = indexedDB.open(data.database, Number(version += 1));
-                request.onupgradeneeded = function() {
-                    db = request.result;
-                    transaction = db.transaction([data.collection], "readonly");
-                    collection = transaction.objectStore(data.collection);
-                    let index = store.index(data.oldName);
-                    index.name = data.newName;
-                }
-
-                request.onsuccess = function() {
-                    let db = request.result;
-                    db.close()
-                    resolve('index does not exist')
-                };
-
-                request.onerror = function() {
-                    reject(request.error)
-                };
-    
-            } else {
-                collection.createIndex(data.newName, data.newName, {unique: false})
-                db.close()
-                resolve('index does not exist')
-            }
-        };
-            
-        openRequest.onerror = function() {
-            reject(openRequest.error)
-        };
-    })
-
-}
-const deleteIndex = (data) => {
-    return new Promise((resolve, reject) => {
-        let openRequest = indexedDB.open(data.database);
-
-        openRequest.onsuccess = function() {
-            let db = openRequest.result;
-            let transaction = db.transaction([data.collection], "readonly");
-            let collection = transaction.objectStore(data.collection);
-            
-            if (collection.indexNames.contains(data.name)){
-                let version = openRequest.result.version
-                db.close()
-                
-                let request = indexedDB.open(data.database, Number(version += 1));
-                request.onupgradeneeded = function() {
-                    db = request.result;
-                    transaction = db.transaction([data.collection], "readonly");
-                    collection = transaction.objectStore(data.collection);
-                    collection.deleteIndex(data.name)
-                }
-
-                request.onsuccess = function() {
-                    let db = request.result;
-                    db.close()
-                    resolve('index does not exist')
-                };
-
-                request.onerror = function() {
-                    reject(request.error)
-                };
-    
-            } else {
-                db.close()
-                resolve('index does not exist')
-            }
-        };
-            
-        openRequest.onerror = function() {
-            reject(openRequest.error)
-        };
-    })
-
-}
-
-const createDocument = (data) => {
-    return new Promise((resolve, reject) => {
-        database(data).then((db) => {
-            let transaction = db.transaction([data.collection], "readwrite");
-            let collection = transaction.objectStore(data.collection);
-            if (!data.data._id)
-                data.data['_id'] = ObjectId()
-            let request = collection.add(data.data);
-            
-            request.onsuccess = function() {
-                db.close()
+        if (action == 'readDatabase') {
+            indexedDB.databases().then((databases) => {
+                data.databases = databases
                 resolve(data)
-            };
-            
-            request.onerror = function() {
-                db.close()
-                reject(request.error)
-            };
-
-        }, (err) => {
-            console.log(err);
-        })
-    })
-}
-
-const readDocument = (data, db, collection) => {
-    return new Promise((resolve, reject) => {
-        if (db && collection) {
-            let request = collection.get(data.data._id);
-                
-            request.onsuccess = function() {
-                data.data = request.result
-                resolve(data)
-            };
-            
-            request.onerror = function() {
-                reject(request.error)
-            };
+            })
         } else {
-
-                let openRequest = indexedDB.open(data.database);
-
+            let databases = data.database;  
+            if (!Array.isArray(databases))
+                databases = [databases]
+    
+            let databasesLength = databases.length
+            for (let database of databases) {
+                databasesLength -= 1
+    
+                let openRequest;
+                switch(action) {
+                    case 'getDatabase':
+                    case 'createDatabase':
+                    case 'updateDatabase':
+                        openRequest = indexedDB.open(database);
+                        break;
+                    case 'deleteDatabase':
+                        openRequest = indexedDB.deleteDatabase(database);
+                        break;
+                    default:
+                        data.error = 'unknown action'
+                        resolve(data)                  }
+    
                 openRequest.onsuccess = function() {
-                    try {
+                    let db = openRequest.result;
+                    let dbs = [] // ToDo: return an array of dbinstance??
+                    console.log('collec', data)
+                    if (data.collection && data.collection.length) {
+                        let collections = data.collection;
+                        if (!Array.isArray(collections))
+                            collections = [collections]
+        
+                        let collectionsLength = collections.length
+                        for (let collection of collections) {
+                            collectionsLength -= 1
+        
+                            let collectionExist = db.objectStoreNames.contains(collection)
+                            if (!collectionExist || data.upgrade == true) {
+                                db.close()
+ 
+                                let version = dbVersion.get(database) || openRequest.result.version
+                                let request = indexedDB.open(database, Number(version += 1));
+                                dbVersion.set(database, version)
+            
+                                request.onupgradeneeded = function() {
+                                    db = request.result;
 
-                        let db = openRequest.result;
-                        let transaction = db.transaction([data.collection], "readwrite");
-                        let collection = transaction.objectStore(data.collection);
-                        let request = collection.get(data.data._id);
+                                    if (!collectionExist) {
+                                        db = request.result;
+                                        db.createObjectStore(data.collection, {keyPath: '_id', autoIncrement: true});
+                                    }
+                                };
                         
-                        request.onsuccess = function() {
-                            db.close()
-                            data.data = request.result
-                            resolve(data)
-                        };
-                        
-                        request.onerror = function() {
-                            db.close()
-                            reject(request.error)
-                        };
-                    } catch (err) {
-                        data.data = {}
-                        // data.error = err
-                        resolve(data)
-                        return 
+                                request.onsuccess = function() {
+                                    data.status = 'success'
+                                    if (!databasesLength && !collectionsLength) {
+                                        if (action == 'getDatabase') {
+                                            let transaction = request.transaction
+                                            
+                                            if (data.upgrade == true && !transaction) {
+                                                request.result.close()
+
+                                                let version = dbVersion.get(database) || openRequest.result.version
+                                                let upgrade = indexedDB.open(database, Number(version += 1));
+                                                dbVersion.set(database, version)
+                            
+                                                upgrade.onupgradeneeded = function() {
+                                                    resolve(upgrade)
+                                                };
+
+                                            } else {
+                                                resolve(request.result)
+                                            }
+                                        }
+                                        else 
+                                            resolve(data)
+                                    }
+                                };
+                            
+                                request.onerror = function() {
+                                    data.status = 'failed'
+                                    data.error = request.error
+                                    if (!databasesLength && !collectionsLength) {
+                                        if (action == 'getDatabase')
+                                            resolve(request)
+                                        else
+                                            resolve(data)
+                                    }
+                                };
+                            }
+                        }
+                    } else {
+                        if (!databasesLength) {
+                            if (action == 'getDatabase') {
+                                let transaction = openRequest.transaction
+                                            
+                                if (data.upgrade == true && !transaction) {                                    
+                                    db.close()
+
+                                    let version = dbVersion.get(database) || openRequest.result.version
+                                    let upgrade = indexedDB.open(database, Number(version += 1));
+                                    dbVersion.set(database, version)
+                
+                                    upgrade.onupgradeneeded = function() {
+                                        resolve(upgrade)
+                                    };
+     
+                                } else {
+                                    resolve(db)
+                                }
+                            }
+                            else
+                                resolve(data)
+                        }
                     }
-                };
+        
+                }
 
                 openRequest.onerror = function() {
-                    reject(openRequest.error)
+                    data.status = 'failed'
+                    data.error = openRequest.error
+                    resolve(data)
                 };
-            
+
+            }
+        }
+
+    }, (err) => {
+        console.log(err);
+    });
+}
+
+
+function createCollection(data){
+    return collection('createCollection', data)
+}
+
+function readCollection(data) {
+    return collection('readCollection', data)
+}
+
+function updateCollection(data) {
+    return collection('updateCollection', data)
+}
+
+function deleteCollection(data) {
+    return collection('deleteCollection', data)
+}
+
+const collection = (action, data) => {
+    return new Promise((resolve, reject) => {
+        let databases = data.database;  
+
+        if (!Array.isArray(databases))
+            databases = [databases]
+        let databasesLength = databases.length
+        for (let database of databases) {
+            databasesLength -= 1
+            let openRequest = indexedDB.open(database)
+
+            openRequest.onsuccess = function() {
+                let db = openRequest.result;
+                let objectStores = db.objectStoreNames
+                db.close()
+
+                if (action == 'readCollection') {
+                    let collections = db.objectStoreNames
+                    if (!data.collection)
+                        data.collection = []
+                    data.data = [];
+                    
+                    for (let collection of Array.from(collections)){
+                        data.collection.push(collection)
+                        data.data.push({name: collection})
+                    }
+                    if (!databasesLength) {
+                        resolve(data)
+                    }
+
+                } else {
+                    let collections = data.collection;
+                    if (!Array.isArray(collections))
+                        collections = [collections]
+                    let collectionsLength = collections.length
+                    for (let collection of collections) {
+                        collectionsLength -= 1
+
+                        let collectionExist = db.objectStoreNames.contains(collection)
+                        if (
+                            collectionExist && action == 'deleteCollection' ||
+                            !collectionExist && ['createCollection', 'updateCollection'].includes(action)
+                        ) {
+                            if (action == 'updateCollection') {
+                                let update = data.updateCollection;
+                                let entries = Object.entries(update)
+                                let entriesLength = entries.length
+                                for (let [key, value] of entries) {
+                                    entriesLength -= 1
+                                
+                                    getDatabase({database, collection: key, upgrade: true}).then((db) => { 
+                                        let transaction = db.transaction
+                                        transaction.oncomplete = function() {
+                                            db = db.result
+                                            console.log(key)
+											let transaction = db.transaction([key], "readwrite")
+                                            let objectStore = transaction.objectStore(key);
+                                            objectStore.name = value
+
+                                            db.close()
+                                            if (!databasesLength && !collectionsLength) {
+                                                resolve(data)
+                                            }
+                                        }
+                                        // let objectStore = transaction.objectStore(key);
+                                        // objectStore.name = value
+
+                                        // db.close()
+                                        // if (!databasesLength && !collectionsLength) {
+                                        //     resolve(data)
+                                        // }
+                                    }, (err) => {
+                                        console.log(err);
+                                    }) 
+                                }
+                            } else {
+                                getDatabase({database, collection, upgrade: true}).then((db) => {
+                                    db = db.result
+                                    if (action == 'deleteCollection')
+                                        db.deleteObjectStore(collection)
+                                    db.close()
+                                    if (!databasesLength && !collectionsLength) {
+                                        resolve(data)
+                                    }
+                                }, (err) => {
+                                    console.log(err);
+                                }) 
+                            }
+                            
+                        } else {
+                            if (!databasesLength && !collectionsLength)
+                                resolve(data)
+                        }
+
+                    }
+    
+                }
+
+            };
+        
+            openRequest.onerror = function() {
+                data.status = 'failed'
+                data.error = openRequest.error
+            };
+        }
+    }, (err) => {
+        console.log(err);
+    });
+}
+
+
+function createIndex(data){
+    return index('createIndex', data)
+}
+
+function readIndex(data) {
+    return index('readIndex', data)
+}
+
+function updateIndex(data) {
+    return index('updateIndex', data)
+}
+
+function deleteIndex(data) {
+    return index('deleteIndex', data)
+}
+
+const index = (action, data) => {
+    return new Promise((resolve, reject) => {
+        let databases = data.database;  
+        if (!Array.isArray(databases))
+            databases = [databases]
+
+        let databasesLength = databases.length
+        for (let database of databases) {
+            databasesLength -= 1
+                
+            getDatabase({database}).then((db) => {
+
+                db = db.result 
+                let collections = data.collection;
+                if (!Array.isArray(collections))
+                    collections = [collections]
+
+                let collectionsLength = collections.length
+                for (let collection of collections) {
+                    collectionsLength -= 1
+
+                    if (action == 'readIndex') {
+                        let transaction = db.transaction(collection, "readonly");
+                        let objectStore = transaction.objectStore(collection);
+                        let indexes = objectStore.indexNames
+
+                        if (!data.index)
+                            data.index = []
+                        for (let index of Array.from(indexes)) {
+                            data.index.push(index)
+                        }
+                        if (!databasesLength && !collectionsLength) {
+                            db.close()
+                            resolve(data)
+                        }
+                    } else {
+                        db.close()
+                        getDatabase({database, collection}).then((db1) => {
+                            db1 = db1.result
+
+                            db1.close()
+                            let indexes = data.index;
+                            if (!Array.isArray(indexes))
+                                indexes = [indexes]
+                            
+
+                            let indexesLength = indexes.length
+                            for (let index of indexes) {
+                                indexesLength -= 1
+                                
+                                getDatabase({database, upgrade: true}).then((db2) => {
+                                    let transaction = db2.transaction;
+                                    let objectStore = transaction.objectStore(collection);
+
+                                    if (action == 'createIndex') {
+                                        objectStore.createIndex(index, index, {unique: false})
+                                    }
+                                    if (action == 'updateIndex') {
+                                        for (let [key, value] of object.entries(data.updateIndex)) {
+                                            let index = store.index(key);
+                                            index.name = value;
+                                        }
+                                    }
+                                    if (action == 'deleteIndex') {
+                                        objectStore.deleteIndex(index)
+                                    }
+                                    db2.result.close()
+                                    if (!databasesLength && !collectionsLength && !indexesLength) {
+                                        resolve(data)
+                                    }                                
+                                });
+                            }
+                        }); 
+                    } 
+                }    
+            });                                        
+                       
+            // openRequest.onerror = function() {
+            //     data.status = 'failed'
+            //     data.error = openRequest.error
+            // };
+
+        }
+
+    }, (err) => {
+        console.log(err);
+    });
+}
+
+function createDocument(data){
+    return document('createDocument', data)
+}
+
+function readDocument(data) {
+    return document('readDocument', data)
+}
+
+function updateDocument(data) {
+    return document('updateDocument', data)
+}
+
+function deleteDocument(data) {
+    return document('deleteDocument', data)
+}
+
+const document = (action, data) => {
+    return new Promise((resolve, reject) => {
+        let databases = data.database;  
+        if (!Array.isArray(databases))
+            databases = [databases]
+
+        let databasesLength = databases.length
+        for (let database of databases) {
+            databasesLength -= 1
+
+            getDatabase({database}).then((db) => {
+                db = db.result
+                let collections = data.collection;
+                if (!Array.isArray(collections))
+                    collections = [collections]
+
+                let collectionsLength = collections.length
+                for (let collection of collections) {
+                    collectionsLength -= 1
+                    let collectionExist = db.objectStoreNames.contains(collection)
+                    if (!collectionExist) { 
+                        db.close()
+                        getDatabase({database, collection}).then((db) => {
+                            db = db.result
+                            let transaction = db.transaction([collection], "readwrite");
+                            let objectStore = transaction.objectStore(collection);
+                            
+                            if (data.filter) {
+                                readDocuments(data).then((filterDocs) => {
+                                    runDocs(action, data, objectStore, filterDocs).then((data) => {
+                                        db.close()
+                                        if (!databasesLength && !collectionsLength) {
+                                            resolve(data)
+                                        }
+                                    })
+    
+                                })
+                            } else {
+                                runDocs(action, data, objectStore).then((data) => {
+                                    db.close()
+                                    if (!databasesLength && !collectionsLength) {
+                                        resolve(data)
+                                    }
+                                })
+                            }
+
+                        }, (err) => {
+                            console.log(err);
+                        })
+
+                    } else {
+                        let transaction = db.transaction([collection], "readwrite");
+                        let objectStore = transaction.objectStore(collection);
+                        
+                        
+                        if (data.filter) {
+                            readDocuments(data).then((filterDocs) => {
+                                runDocs(action, data, objectStore, filterDocs).then((data) => {
+                                    db.close()
+                                    if (!databasesLength && !collectionsLength) {
+                                        resolve(data)
+                                    }
+                                })
+
+                            })
+                        } else {
+                            runDocs(action, data, objectStore).then((data) => {
+                                db.close()
+                                if (!databasesLength && !collectionsLength) {
+                                    resolve(data)
+                                }
+                            })
+                        }
+                    }
+                }
+
+            }, (err) => {
+                console.log(err);
+            })
+
         }
     })
 }
 
-const updateDocument = (data) => {
+function runDocs(action, data, objectStore, filterDocs) {
     return new Promise((resolve, reject) => {
-        database(data).then((db) => {
-            let transaction = db.transaction([data.collection], "readwrite");
-            let collection = transaction.objectStore(data.collection);
-           
-            if (!data.data._id && data.upsert == true) {
-                data.data['_id'] = ObjectId() 
+        let documents = []
+        let log = []
+        let updateData;
+
+        let docs = data.data;
+        if (!Array.isArray(docs))
+            docs = [docs]
+
+        if (filterDocs && filterDocs.length) {
+            if (action == 'updateDocument') {
+                updateData = {}
+                for (let filterDoc of filterDocs)
+                filterDoc = dotNotationToObject(filterDoc, updateData)
+
+                documents.push(filterDoc)
             }
-            if (!data.data._id) {
-                db.close()
-                resolve(data['error'] = 'requires _id')
+            if (action == 'deleteDocument')
+                docs.push(...filterDocs)
+        }
+        if (action == 'deleteDocument' && filterDocs && filterDocs.length)
+            docs.push(...filterDocs)
+
+        let docsLength = docs.length
+        for (let doc of docs) {
+            docsLength -= 1
+
+            if (action == 'updateDocument') {
+                if (!doc._id && data.upsert == true)
+                    doc['_id'] = ObjectId()
+                updateDoc(data, doc, objectStore).then((doc) => {
+                    documents.push(doc)
+                    if (!docsLength) {
+                        data.data = documents
+                        if (data.filter && data.filter.sort)
+                            data.data = sortData(data.data, data.filter.sort)
+                        resolve(data)
+                    }
+                })
             } else {
-                let get = collection.get(data.data._id)
-                get.onsuccess = function() {;
-                    // ToDo: merge objects and update using dot notation
-                    if (get.result || data.upsert == true) {
-                        data.data = dotNotationToObject(data.data, get.result)
+                let request;
+                if (action == 'createDocument') {
+                    if (!doc._id)
+                        doc['_id'] = ObjectId()
+                    doc = dotNotationToObject(doc)
+                    request = objectStore.add(doc);
+                }
+                if (action == 'readDocument')
+                    request = objectStore.get(doc._id);
+                if (action == 'deleteDocument')
+                    request = objectStore.delete(doc._id);
+                
+                request.onsuccess = function() {
+                    data.status = 'success'
+                    if (action == 'createDocument') {
+                        documents.push(doc)
+                    }
+                    if (action == 'readDocument')
+                        documents.push(request.result)
+                    if (action == 'deleteDocument')
+                        documents.push({_id: doc._id})
 
-                        if (data.updateName){
-                            for (let [key, value] of Object.entries(data.updateName)){
-                                let val = data.data[key]
-                                delete data.data[key]
-                                data.data[value] = val
-                            }
+                    if (!docsLength) {
+                        if (action == 'createDocument')
+                            data.data = documents
+                        if (action == 'readDocument')
+                            data.data = documents.concat(filterDocs)
+                        if (action == 'deleteDocument')
+                            data.data = documents
+                        if (data.filter && data.filter.sort)
+                            data.data = sortData(data.data, data.filter.sort)
 
-                        }  
-
-                        if (data.deleteName){
-                            for (let key of Object.keys(data.deleteName)){
-                                delete data.data[key]
-                            }
-
-                        }
-    
-                        let put = collection.put(data.data);
-                        
-                        put.onsuccess = function() {
-                            db.close()
-                            resolve(data)
-                        };
-                        
-                        put.onerror = function() {
-                            db.close()
-                            reject(put.error)
-                        };
-                    } else {
-                        db.close()
-                        reject('document doest not exist and upsert is not true')
+                        resolve(data)
                     }
                 };
                 
-                get.onerror = function() {
-                    db.close()
-                    reject(get.error)
+                request.onerror = function() {
+                    data.status = 'failed'
+                    log.push({message: request.error, data: doc})
                 };
             }
-        })
+        }
+    }, (err) => {
+        console.log(err);
     })
 }
 
-const deleteDocument = (data) => {
+
+function updateDoc(data, doc, objectStore) {
     return new Promise((resolve, reject) => {
-        let openRequest = indexedDB.open(data.database);
-        
-        openRequest.onsuccess = function() {
-            let db = openRequest.result;
-            let transaction = db.transaction([data.collection], "readwrite");
-            let collection = transaction.objectStore(data.collection);
-                        
-            let request = collection.delete(data.data._id);
-            
-            request.onsuccess = function() {
-                db.close()
-                resolve(data)
+        if (!doc._id) {
+            data['error'] = 'requires _id'
+        } else {
+            let get = objectStore.get(doc._id)
+            get.onsuccess = function() {;
+                // ToDo: merge objects and update using dot notation
+                if (get.result || data.upsert == true) {
+                   
+                    doc = dotNotationToObject(doc, get.result)
+
+                    if (data.updateName){
+                        for (let [key, value] of Object.entries(data.updateName)){
+                            let val = doc[key]
+                            delete doc[key]
+                            doc[value] = val
+                        }
+
+                    }  
+
+                    if (data.deleteName){
+                        for (let key of Object.keys(data.deleteName)){
+                            delete doc[key]
+                        }
+
+                    }
+
+                    let put = objectStore.put(doc);
+                    
+                    put.onsuccess = function() {
+                        data.status = 'success',
+                        resolve(doc)
+                    };
+                    
+                    put.onerror = function() {
+                        data.status = 'failed'
+                        data.error = put.error
+                        resolve(doc)
+                    };
+                } else {
+                    data.status = 'failed'
+                    data.error = 'document doest not exist and upsert is not true'
+                }
             };
             
-            request.onerror = function() {
-                db.close()
-                reject(request.error)
+            get.onerror = function() {
+                data.status = 'failed'
+                data.error = get.error
             };
-        } 
-        openRequest.onerror = function() {
-            reject(openRequest.error)
-        };
+        }
     })
 }
 
@@ -622,7 +650,6 @@ const readDocuments = (data) => {
         openRequest.onsuccess = function() {
             let db = openRequest.result;
             try {
-                // var transaction = db.transaction([data.collection], "readonly");
                 let transaction = db.transaction([data.collection], "readonly");
                 let collection = transaction.objectStore(data.collection);
                 let results = [];
@@ -646,8 +673,6 @@ const readDocuments = (data) => {
                         if (data.filter) {
                             if (data.filter.search)
                                 data.data = searchData(data.data, data.filter)
-                            if (data.filter.sort)
-                                data.data = sortData(data.data, data.filter.sort)
                         }
                         resolve(data)
                     }
@@ -850,15 +875,14 @@ function init() {
 init();
 
 export default {
-    database,
+    getDatabase,
     createDatabase,
     readDatabase,
-    readDatabases,
     updateDatabase,
     deleteDatabase,
     
     createCollection,
-    readCollections,
+    readCollection,
     updateCollection,
     deleteCollection, 
 
@@ -869,7 +893,6 @@ export default {
 
     createDocument, 
     readDocument,
-    readDocuments,
     updateDocument, 
     deleteDocument, 
 
