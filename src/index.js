@@ -36,14 +36,20 @@ const Database = (action, data) => {
                 resolve(data)
             })
         } else {
-            let databases = data.database;  
+            let databases
+            if (action == 'updateDatabase')
+                databases = Object.entries(data.database)
+            else
+                databases = data.database;            
+            
             if (!Array.isArray(databases))
                 databases = [databases]
     
             let databasesLength = databases.length
             for (let database of databases) {
-                databasesLength -= 1
-    
+                if (action == 'updateDatabase')
+                    [database, value] = database
+
                 let openRequest;
                 switch(action) {
                     case 'getDatabase':
@@ -61,18 +67,18 @@ const Database = (action, data) => {
                 openRequest.onsuccess = function() {
                     let db = openRequest.result;
                     let dbs = [] // ToDo: return an array of dbinstance??
-                    console.log('collec', data)
-                    if (data.collection && data.collection.length) {
+                    if (action == 'updateDatabase') {
+                        // ToDo: open a cursor at database collection and save each collection and document at value
+                    } else if (data.collection && data.collection.length) {
                         let collections = data.collection;
                         if (!Array.isArray(collections))
                             collections = [collections]
         
                         let collectionsLength = collections.length
                         for (let collection of collections) {
-                            collectionsLength -= 1
         
                             let collectionExist = db.objectStoreNames.contains(collection)
-                            if (!collectionExist || data.upgrade == true) {
+                            // if (!collectionExist || data.upgrade == true) {
                                 db.close()
  
                                 let version = dbVersion.get(database) || openRequest.result.version
@@ -90,6 +96,12 @@ const Database = (action, data) => {
                         
                                 request.onsuccess = function() {
                                     data.status = 'success'
+                                        
+                                    collectionsLength -= 1
+
+                                    if (!collectionsLength)
+                                        databasesLength -= 1
+
                                     if (!databasesLength && !collectionsLength) {
                                         if (action == 'getDatabase') {
                                             let transaction = request.transaction
@@ -117,6 +129,10 @@ const Database = (action, data) => {
                                 request.onerror = function() {
                                     data.status = 'failed'
                                     data.error = request.error
+                                    collectionsLength -= 1
+
+                                    if (!collectionsLength)
+                                        databasesLength -= 1
                                     if (!databasesLength && !collectionsLength) {
                                         if (action == 'getDatabase')
                                             resolve(request)
@@ -124,9 +140,12 @@ const Database = (action, data) => {
                                             resolve(data)
                                     }
                                 };
-                            }
+                            // } else {
+
+                            // }
                         }
                     } else {
+                        databasesLength -= 1
                         if (!databasesLength) {
                             if (action == 'getDatabase') {
                                 let transaction = openRequest.transaction
@@ -192,88 +211,96 @@ const collection = (action, data) => {
             databases = [databases]
         let databasesLength = databases.length
         for (let database of databases) {
-            databasesLength -= 1
             let openRequest = indexedDB.open(database)
 
             openRequest.onsuccess = function() {
                 let db = openRequest.result;
-                let objectStores = db.objectStoreNames
                 db.close()
-
+                let objectStoreNames = Array.from(db.objectStoreNames)
                 if (action == 'readCollection') {
-                    let collections = db.objectStoreNames
                     if (!data.collection)
                         data.collection = []
                     data.data = [];
                     
-                    for (let collection of Array.from(collections)){
+                    for (let collection of Array.from(objectStoreNames)){
                         data.collection.push(collection)
                         data.data.push({name: collection})
                     }
+
+                    databasesLength -= 1
                     if (!databasesLength) {
                         resolve(data)
                     }
 
                 } else {
-                    let collections = data.collection;
+                    let collections
+                    if (action == 'updateCollection')
+                        collections = Object.entries(data.collection)
+                    else
+                        collections = data.collection;
                     if (!Array.isArray(collections))
                         collections = [collections]
                     let collectionsLength = collections.length
                     for (let collection of collections) {
-                        collectionsLength -= 1
-
+                        let value
+                        if (action == 'updateCollection')
+                            [collection, value] = collection
                         let collectionExist = db.objectStoreNames.contains(collection)
                         if (
-                            collectionExist && action == 'deleteCollection' ||
+                            collectionExist && ['updateCollection', 'deleteCollection'].includes(action) ||
                             !collectionExist && ['createCollection', 'updateCollection'].includes(action)
                         ) {
-                            if (action == 'updateCollection') {
-                                let update = data.updateCollection;
-                                let entries = Object.entries(update)
-                                let entriesLength = entries.length
-                                for (let [key, value] of entries) {
-                                    entriesLength -= 1
+                            getDatabase({database, collection, upgrade: true}).then((db) => {
+                                if (collectionExist && action == 'updateCollection') {
+                                    let transaction = db.transaction;
+                                    let objectStore = transaction.objectStore(collection);
+
+                                    let valueExist = objectStoreNames.includes(value)
+                                    if (!valueExist) {
+                                        objectStore.name = value;
+                                    }
+                                    else
+                                        console.log('collection does not exist')
                                 
-                                    getDatabase({database, collection: key, upgrade: true}).then((db) => { 
-                                        let transaction = db.transaction
-                                        transaction.oncomplete = function() {
-                                            db = db.result
-                                            console.log(key)
-											let transaction = db.transaction([key], "readwrite")
-                                            let objectStore = transaction.objectStore(key);
-                                            objectStore.name = value
+                                    db.result.close()                                        
+                                    collectionsLength -= 1
 
-                                            db.close()
-                                            if (!databasesLength && !collectionsLength) {
-                                                resolve(data)
-                                            }
-                                        }
-                                        // let objectStore = transaction.objectStore(key);
-                                        // objectStore.name = value
+                                    if (!collectionsLength)
+                                        databasesLength -= 1
 
-                                        // db.close()
-                                        // if (!databasesLength && !collectionsLength) {
-                                        //     resolve(data)
-                                        // }
-                                    }, (err) => {
-                                        console.log(err);
-                                    }) 
-                                }
-                            } else {
-                                getDatabase({database, collection, upgrade: true}).then((db) => {
+                                    if (!databasesLength && !collectionsLength)
+                                        resolve(data)
+                                    
+                    
+                                } else {
                                     db = db.result
-                                    if (action == 'deleteCollection')
+
+                                    if (action == 'deleteCollection') {
                                         db.deleteObjectStore(collection)
+                                    }
+    
                                     db.close()
+    
+                                    collectionsLength -= 1
+    
+                                    if (!collectionsLength)
+                                        databasesLength -= 1
+        
                                     if (!databasesLength && !collectionsLength) {
                                         resolve(data)
                                     }
-                                }, (err) => {
-                                    console.log(err);
-                                }) 
-                            }
+    
+                                }
+                            }, (err) => {
+                                console.log(err);
+                            }) 
                             
                         } else {
+                            collectionsLength -= 1
+
+                            if (!collectionsLength)
+                                databasesLength -= 1
+
                             if (!databasesLength && !collectionsLength)
                                 resolve(data)
                         }
@@ -319,74 +346,104 @@ const index = (action, data) => {
 
         let databasesLength = databases.length
         for (let database of databases) {
-            databasesLength -= 1
-                
-            getDatabase({database}).then((db) => {
+            let collections = data.collection;
+            if (!Array.isArray(collections))
+                collections = [collections]
 
-                db = db.result 
-                let collections = data.collection;
-                if (!Array.isArray(collections))
-                    collections = [collections]
-
-                let collectionsLength = collections.length
-                for (let collection of collections) {
-                    collectionsLength -= 1
-
-                    if (action == 'readIndex') {
+            let collectionsLength = collections.length
+            for (let collection of collections) {
+                getDatabase({database}).then((db) => {
+                    let objectStoreNames = Array.from(db.objectStoreNames)
+                    if (objectStoreNames.includes(collection)) {
                         let transaction = db.transaction(collection, "readonly");
                         let objectStore = transaction.objectStore(collection);
-                        let indexes = objectStore.indexNames
-
-                        if (!data.index)
-                            data.index = []
-                        for (let index of Array.from(indexes)) {
-                            data.index.push(index)
-                        }
-                        if (!databasesLength && !collectionsLength) {
+                        let indexNames = Array.from(objectStore.indexNames)
+    
+                        if (action == 'readIndex') {
+                            if (!data.index)
+                                data.index = []
+                            for (let index of Array.from(indexNames)) {
+                                data.index.push(index)
+                            }
+                            collectionsLength -= 1
                             db.close()
-                            resolve(data)
-                        }
-                    } else {
-                        db.close()
-                        getDatabase({database, collection}).then((db1) => {
-                            db1 = db1.result
 
-                            db1.close()
-                            let indexes = data.index;
+                            if (!collectionsLength)
+                                databasesLength -= 1
+    
+                            if (!databasesLength && !collectionsLength)
+                                resolve(data)
+
+                        } else {
+                            db.close()
+                            let indexes
+                            if (action == 'updateIndex')
+                                indexes = Object.entries(data.index)
+                            else
+                                indexes = data.index;
                             if (!Array.isArray(indexes))
                                 indexes = [indexes]
                             
-
                             let indexesLength = indexes.length
                             for (let index of indexes) {
-                                indexesLength -= 1
                                 
                                 getDatabase({database, upgrade: true}).then((db2) => {
                                     let transaction = db2.transaction;
                                     let objectStore = transaction.objectStore(collection);
 
+                                    let value
+                                    if (action == 'updateIndex')
+                                        [index, value] = index
+
+                                    let indexExist = indexNames.includes(index)
+
                                     if (action == 'createIndex') {
-                                        objectStore.createIndex(index, index, {unique: false})
+                                        if (!indexExist)
+                                            objectStore.createIndex(index, index, {unique: false})
+                                        else
+                                            console.log('index exist')
                                     }
                                     if (action == 'updateIndex') {
-                                        for (let [key, value] of object.entries(data.updateIndex)) {
-                                            let index = store.index(key);
-                                            index.name = value;
+                                        let valueExist = indexNames.includes(value)
+                                        let indexObj = objectStore.index(index);
+                                        if (indexExist && !valueExist) {
+                                                indexObj.name = value;
                                         }
+                                        else
+                                            console.log('index does not exist')
                                     }
                                     if (action == 'deleteIndex') {
-                                        objectStore.deleteIndex(index)
+                                        if (indexExist)
+                                            objectStore.deleteIndex(index)
+                                        else
+                                            console.log('index does not exist')
                                     }
                                     db2.result.close()
+
+                                    indexesLength -= 1
+
+                                    if (!indexesLength)
+                                        collectionsLength -= 1
+                                        
+                                    if (!collectionsLength)
+                                        databasesLength -= 1                                    
+                                    
                                     if (!databasesLength && !collectionsLength && !indexesLength) {
                                         resolve(data)
                                     }                                
                                 });
                             }
-                        }); 
-                    } 
-                }    
-            });                                        
+        
+                        } 
+        
+                    } else {
+                        db.close()
+                        console.log('collection:', collection ,'does not exist')
+                        resolve(data)
+                    }
+                });                                        
+
+            }    
                        
             // openRequest.onerror = function() {
             //     data.status = 'failed'
@@ -416,47 +473,56 @@ function deleteDocument(data) {
     return document('deleteDocument', data)
 }
 
+
 const document = (action, data) => {
     return new Promise((resolve, reject) => {
+        var documents = []
         let databases = data.database;  
         if (!Array.isArray(databases))
             databases = [databases]
 
         let databasesLength = databases.length
         for (let database of databases) {
-            databasesLength -= 1
-
             getDatabase({database}).then((db) => {
-                db = db.result
                 let collections = data.collection;
                 if (!Array.isArray(collections))
                     collections = [collections]
 
                 let collectionsLength = collections.length
                 for (let collection of collections) {
-                    collectionsLength -= 1
                     let collectionExist = db.objectStoreNames.contains(collection)
                     if (!collectionExist) { 
                         db.close()
                         getDatabase({database, collection}).then((db) => {
-                            db = db.result
                             let transaction = db.transaction([collection], "readwrite");
                             let objectStore = transaction.objectStore(collection);
                             
                             if (data.filter) {
                                 readDocuments(data).then((filterDocs) => {
-                                    runDocs(action, data, objectStore, filterDocs).then((data) => {
+                                    runDocs(action, data, objectStore, documents, filterDocs).then(() => {
                                         db.close()
+                                        collectionsLength -= 1
+                                        
+                                        if (!collectionsLength)
+                                            databasesLength -= 1
+                                        
                                         if (!databasesLength && !collectionsLength) {
+                                            data = createData(action, data, documents, filterDocs)
                                             resolve(data)
                                         }
                                     })
     
                                 })
                             } else {
-                                runDocs(action, data, objectStore).then((data) => {
+                                runDocs(action, data, objectStore, documents).then(() => {
                                     db.close()
+                                    collectionsLength -= 1
+                                    
+                                    if (collectionsLength == 0)
+                                        databasesLength -= 1
+
                                     if (!databasesLength && !collectionsLength) {
+                                        data = createData(action, data, documents)
                                         resolve(data)
                                     }
                                 })
@@ -473,18 +539,30 @@ const document = (action, data) => {
                         
                         if (data.filter) {
                             readDocuments(data).then((filterDocs) => {
-                                runDocs(action, data, objectStore, filterDocs).then((data) => {
+                                runDocs(action, data, objectStore, documents, filterDocs).then(() => {
                                     db.close()
+                                    collectionsLength -= 1
+                                    
+                                    if (collectionsLength == 0)
+                                        databasesLength -= 1
+                                        
                                     if (!databasesLength && !collectionsLength) {
+                                        data = createData(action, data, documents, filterDocs)
                                         resolve(data)
                                     }
                                 })
 
                             })
                         } else {
-                            runDocs(action, data, objectStore).then((data) => {
+                            runDocs(action, data, objectStore, documents).then(() => {
                                 db.close()
+                                collectionsLength -= 1
+                                
+                                if (collectionsLength == 0)
+                                    databasesLength -= 1
+                                        
                                 if (!databasesLength && !collectionsLength) {
+                                    data = createData(action, data, documents)
                                     resolve(data)
                                 }
                             })
@@ -500,9 +578,30 @@ const document = (action, data) => {
     })
 }
 
-function runDocs(action, data, objectStore, filterDocs) {
+function createData(action, data, documents, filterDocs) {
+    if (action == 'updateDocument') {
+        data.data = documents
+        if (data.filter && data.filter.sort)
+            data.data = sortData(data.data, data.filter.sort)
+
+    }
+    if (action == 'createDocument')
+        data.data = documents
+    if (action == 'readDocument'){
+        if (filterDocs && filterDocs.length)
+            data.data = documents.concat(filterDocs)
+        else
+            data.data = documents
+    }
+    if (action == 'deleteDocument')
+        data.data = documents
+    if (data.filter && data.filter.sort)
+        data.data = sortData(data.data, data.filter.sort)
+    return data
+}
+
+function runDocs(action, data, objectStore, documents, filterDocs) {
     return new Promise((resolve, reject) => {
-        let documents = []
         let log = []
         let updateData;
 
@@ -513,31 +612,26 @@ function runDocs(action, data, objectStore, filterDocs) {
         if (filterDocs && filterDocs.length) {
             if (action == 'updateDocument') {
                 updateData = {}
-                for (let filterDoc of filterDocs)
-                filterDoc = dotNotationToObject(filterDoc, updateData)
-
-                documents.push(filterDoc)
+                for (let filterDoc of filterDocs) {
+                    filterDoc = dotNotationToObject(filterDoc, updateData)
+                    documents.push(filterDoc)
+                }
             }
             if (action == 'deleteDocument')
                 docs.push(...filterDocs)
         }
-        if (action == 'deleteDocument' && filterDocs && filterDocs.length)
-            docs.push(...filterDocs)
 
         let docsLength = docs.length
         for (let doc of docs) {
-            docsLength -= 1
 
-            if (action == 'updateDocument') {
+            if (action == 'updateDocument' || action == 'deleteDocument') {
                 if (!doc._id && data.upsert == true)
                     doc['_id'] = ObjectId()
                 updateDoc(data, doc, objectStore).then((doc) => {
                     documents.push(doc)
+                    docsLength -= 1
                     if (!docsLength) {
-                        data.data = documents
-                        if (data.filter && data.filter.sort)
-                            data.data = sortData(data.data, data.filter.sort)
-                        resolve(data)
+                        resolve()
                     }
                 })
             } else {
@@ -546,12 +640,13 @@ function runDocs(action, data, objectStore, filterDocs) {
                     if (!doc._id)
                         doc['_id'] = ObjectId()
                     doc = dotNotationToObject(doc)
+
                     request = objectStore.add(doc);
                 }
-                if (action == 'readDocument')
+
+                if (action == 'readDocument') {
                     request = objectStore.get(doc._id);
-                if (action == 'deleteDocument')
-                    request = objectStore.delete(doc._id);
+                }
                 
                 request.onsuccess = function() {
                     data.status = 'success'
@@ -560,20 +655,10 @@ function runDocs(action, data, objectStore, filterDocs) {
                     }
                     if (action == 'readDocument')
                         documents.push(request.result)
-                    if (action == 'deleteDocument')
-                        documents.push({_id: doc._id})
-
-                    if (!docsLength) {
-                        if (action == 'createDocument')
-                            data.data = documents
-                        if (action == 'readDocument')
-                            data.data = documents.concat(filterDocs)
-                        if (action == 'deleteDocument')
-                            data.data = documents
-                        if (data.filter && data.filter.sort)
-                            data.data = sortData(data.data, data.filter.sort)
-
-                        resolve(data)
+                    
+                    docsLength -= 1
+                    if (!docsLength) {                        
+                        resolve()
                     }
                 };
                 
@@ -588,7 +673,6 @@ function runDocs(action, data, objectStore, filterDocs) {
     })
 }
 
-
 function updateDoc(data, doc, objectStore) {
     return new Promise((resolve, reject) => {
         if (!doc._id) {
@@ -596,43 +680,69 @@ function updateDoc(data, doc, objectStore) {
         } else {
             let get = objectStore.get(doc._id)
             get.onsuccess = function() {;
-                // ToDo: merge objects and update using dot notation
-                if (get.result || data.upsert == true) {
-                   
-                    doc = dotNotationToObject(doc, get.result)
+                
+                let result = get.result
+                if (result || data.upsert == true) {
+                    let modify = true
+                    if (doc.modified && result.modified)
+                        if (result.modified.on < doc.modified.on)
+                            modify = false
 
-                    if (data.updateName){
-                        for (let [key, value] of Object.entries(data.updateName)){
-                            let val = doc[key]
-                            delete doc[key]
-                            doc[value] = val
+                    if (modify) {
+                        if (action == 'updateDocument') {
+                            doc = dotNotationToObject(doc, get.result)
+
+                            if (data.updateName){
+                                for (let [key, value] of Object.entries(data.updateName)){
+                                    let val = doc[key]
+                                    delete doc[key]
+                                    doc[value] = val
+                                }
+                            }  
+        
+                            if (data.deleteName){
+                                for (let key of Object.keys(data.deleteName)){
+                                    delete doc[key]
+                                }
+        
+                            }
+        
+                            let put = objectStore.put(doc);
+                            
+                            put.onsuccess = function() {
+                                data.status = 'success',
+                                resolve(doc)
+                            };
+                            
+                            put.onerror = function() {
+                                data.status = 'failed'
+                                data.error = put.error
+                                resolve(doc)
+                            };
+    
                         }
 
-                    }  
-
-                    if (data.deleteName){
-                        for (let key of Object.keys(data.deleteName)){
-                            delete doc[key]
+                        if (action == 'deleteDocument') {
+                            let deleteDoc = objectStore.delete(doc._id);
+                            
+                            deleteDoc.onsuccess = function() {
+                                data.status = 'success',
+                                resolve(doc)
+                            };
+                            
+                            deleteDoc.onerror = function() {
+                                data.status = 'failed'
+                                data.error = deleteDoc.error
+                                resolve(doc)
+                            };
                         }
-
+    
                     }
-
-                    let put = objectStore.put(doc);
-                    
-                    put.onsuccess = function() {
-                        data.status = 'success',
-                        resolve(doc)
-                    };
-                    
-                    put.onerror = function() {
-                        data.status = 'failed'
-                        data.error = put.error
-                        resolve(doc)
-                    };
                 } else {
                     data.status = 'failed'
                     data.error = 'document doest not exist and upsert is not true'
                 }
+
             };
             
             get.onerror = function() {
@@ -689,43 +799,6 @@ const readDocuments = (data) => {
                 return 
             }
 
-        };
-
-        openRequest.onerror = function() {
-            reject(openRequest.error)
-        };
-    })
-}
-
-const sync = (action, data) => {
-    return new Promise((resolve, reject) => {
-        let openRequest = indexedDB.open(data.database);
-        
-        openRequest.onsuccess = function() {
-            let db = openRequest.result;
-            let transaction = db.transaction([data.collection], "readonly");
-            let collection = transaction.objectStore(data.collection);
-            
-            if (Array.isArray(data.data)) {
-                for (let item of data.data) {
-                    readDocument(item, db, collection).then((doc) => {
-                        if (doc.modified.on < item.modifed.on) {
-                            collection.put(item)
-                        }
-
-                    })
-                }
-            } else {
-                readDocument(item, db, collection).then((doc) => {
-                    if (doc.modified.on < item.modifed.on) {
-                        collection.put(item)
-                    }
-
-                })
-            }
-
-            db.close()
-            resolve('synced')
         };
 
         openRequest.onerror = function() {
@@ -896,7 +969,6 @@ export default {
     updateDocument, 
     deleteDocument, 
 
-    sync,
     ObjectId,
     generateDB
 };
