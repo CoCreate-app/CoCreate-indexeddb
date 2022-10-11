@@ -68,7 +68,29 @@ const Database = (action, data) => {
                     let db = openRequest.result;
                     let dbs = [] // ToDo: return an array of dbinstance??
                     if (action == 'updateDatabase') {
-                        // ToDo: open a cursor at database collection and save each collection and document at value
+                         // ToDo: open a cursor at database collection and save each collection and document at value
+
+                        let objectStoreNames = Array.from(db.objectStoreNames)
+                        for (let collection of objectStoreNames) {
+                            let request = collection.openCursor();
+            
+                            request.onsuccess = function() {
+                                let cursor = request.result;
+                                if (cursor) {
+                                    let value = cursor.value;
+                                   
+                                    cursor.continue();
+                                } else {
+                                    // -1
+                                }
+                            };
+                            
+                            request.onerror = function() {
+                                // -1
+                            };
+    
+                        }
+        
                     } else if (data.collection && data.collection.length) {
                         let collections = data.collection;
                         if (!Array.isArray(collections))
