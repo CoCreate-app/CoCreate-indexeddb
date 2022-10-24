@@ -30,6 +30,8 @@ const getDatabase = (data) => {
 const dbVersion = new Map()
 const Database = (action, data) => {
     return new Promise((resolve, reject) => {
+        if (!data['timeStamp'])
+            data['timeStamp'] = new Date().toISOString()
         if (action == 'readDatabase') {
             indexedDB.databases().then((databases) => {
                 data.databases = databases
@@ -61,7 +63,7 @@ const Database = (action, data) => {
                         openRequest = indexedDB.deleteDatabase(database);
                         break;
                     default:
-                        data.error = 'unknown action'
+                        errorHandler(data, 'unknown action', database)
                         resolve(data)                  }
     
                 openRequest.onsuccess = function() {
@@ -86,7 +88,7 @@ const Database = (action, data) => {
                             };
                             
                             request.onerror = function() {
-                                // -1
+                                errorHandler(data, request.error, database, collection)
                             };
     
                         }
@@ -100,7 +102,7 @@ const Database = (action, data) => {
                         for (let collection of collections) {
         
                             let collectionExist = db.objectStoreNames.contains(collection)
-                            // if (!collectionExist || data.upgrade == true) {
+                            if (!collectionExist || collectionsLength == 1 && data.upgrade == true) {
                                 db.close()
  
                                 let version = dbVersion.get(database) || openRequest.result.version
@@ -112,13 +114,15 @@ const Database = (action, data) => {
 
                                     if (!collectionExist) {
                                         db = request.result;
-                                        db.createObjectStore(data.collection, {keyPath: '_id', autoIncrement: true});
+                                        try {
+                                            db.createObjectStore(collection, {keyPath: '_id', autoIncrement: true});
+                                        } catch (error) {
+                                            errorHandler(data, error, database, collection)
+                                        }
                                     }
                                 };
                         
-                                request.onsuccess = function() {
-                                    data.status = 'success'
-                                        
+                                request.onsuccess = function() {                                        
                                     collectionsLength -= 1
 
                                     if (!collectionsLength)
@@ -149,8 +153,7 @@ const Database = (action, data) => {
                                 };
                             
                                 request.onerror = function() {
-                                    data.status = 'failed'
-                                    data.error = request.error
+                                    errorHandler(data, request.error, database, collection)
                                     collectionsLength -= 1
 
                                     if (!collectionsLength)
@@ -162,9 +165,18 @@ const Database = (action, data) => {
                                             resolve(data)
                                     }
                                 };
-                            // } else {
+                            } else {
+                                collectionsLength -= 1
 
-                            // }
+                                if (!collectionsLength)
+                                    databasesLength -= 1
+                                if (!databasesLength && !collectionsLength) {
+                                    if (action == 'getDatabase')
+                                        resolve(db)
+                                    else
+                                        resolve(data)
+                                }
+                            }
                         }
                     } else {
                         databasesLength -= 1
@@ -195,8 +207,7 @@ const Database = (action, data) => {
                 }
 
                 openRequest.onerror = function() {
-                    data.status = 'failed'
-                    data.error = openRequest.error
+                    errorHandler(data, openRequest.error, database)
                     resolve(data)
                 };
 
@@ -204,7 +215,7 @@ const Database = (action, data) => {
         }
 
     }, (err) => {
-        console.log(err);
+        errorHandler(data, err)
     });
 }
 
@@ -227,6 +238,11 @@ function deleteCollection(data) {
 
 const collection = (action, data) => {
     return new Promise((resolve, reject) => {
+        let collectionArray = [];
+
+        if (!data['timeStamp'])
+            data['timeStamp'] = new Date().toISOString()
+
         let databases = data.database;  
 
         if (!Array.isArray(databases))
@@ -245,12 +261,12 @@ const collection = (action, data) => {
                     data.data = [];
                     
                     for (let collection of Array.from(objectStoreNames)){
-                        data.collection.push(collection)
-                        data.data.push({name: collection})
+                        collectionArray.push({name: collection, db: 'indexeddb', database})
                     }
 
                     databasesLength -= 1
                     if (!databasesLength) {
+                        data.collection = collectionArray
                         resolve(data)
                     }
 
@@ -282,17 +298,20 @@ const collection = (action, data) => {
                                         objectStore.name = value;
                                     }
                                     else
-                                        console.log('collection does not exist')
+                                        errorHandler(data, 'collection does not exist', database)
                                 
-                                    db.result.close()                                        
+                                    db.result.close() 
+
+                                    collectionArray.push({name: collection, db: 'indexeddb', database})                                      
                                     collectionsLength -= 1
 
                                     if (!collectionsLength)
                                         databasesLength -= 1
 
-                                    if (!databasesLength && !collectionsLength)
+                                    if (!databasesLength && !collectionsLength){
+                                        data.collection = collectionArray
                                         resolve(data)
-                                    
+                                    }                                    
                     
                                 } else {
                                     db = db.result
@@ -300,31 +319,36 @@ const collection = (action, data) => {
                                     if (action == 'deleteCollection') {
                                         db.deleteObjectStore(collection)
                                     }
-    
+
                                     db.close()
-    
+
+                                    collectionArray.push({name: collection, db: 'indexeddb', database})
                                     collectionsLength -= 1
     
                                     if (!collectionsLength)
                                         databasesLength -= 1
         
                                     if (!databasesLength && !collectionsLength) {
+                                        data.collection = collectionArray
                                         resolve(data)
                                     }
     
                                 }
                             }, (err) => {
-                                console.log(err);
+                                errorHandler(data, err, database)
                             }) 
                             
                         } else {
+                            collectionArray.push({name: collection, db: 'indexeddb', database})
                             collectionsLength -= 1
 
                             if (!collectionsLength)
                                 databasesLength -= 1
 
-                            if (!databasesLength && !collectionsLength)
+                            if (!databasesLength && !collectionsLength) {
+                                data.collection = collectionArray
                                 resolve(data)
+                            }
                         }
 
                     }
@@ -334,12 +358,16 @@ const collection = (action, data) => {
             };
         
             openRequest.onerror = function() {
-                data.status = 'failed'
-                data.error = openRequest.error
+                errorHandler(data, openRequest.error, database)
+                databasesLength -= 1
+
+                if (!databasesLength) {
+                    resolve(data)
+                }
             };
         }
     }, (err) => {
-        console.log(err);
+        errorHandler(data, err, database)
     });
 }
 
@@ -362,6 +390,9 @@ function deleteIndex(data) {
 
 const index = (action, data) => {
     return new Promise((resolve, reject) => {
+        if (!data['timeStamp'])
+            data['timeStamp'] = new Date().toISOString()
+
         let databases = data.database;  
         if (!Array.isArray(databases))
             databases = [databases]
@@ -423,7 +454,7 @@ const index = (action, data) => {
                                         if (!indexExist)
                                             objectStore.createIndex(index, index, {unique: false})
                                         else
-                                            console.log('index exist')
+                                            errorHandler(data, 'index exist', database, collection)
                                     }
                                     if (action == 'updateIndex') {
                                         let valueExist = indexNames.includes(value)
@@ -432,13 +463,14 @@ const index = (action, data) => {
                                                 indexObj.name = value;
                                         }
                                         else
-                                            console.log('index does not exist')
+                                            errorHandler(data, 'index does not exist', database, collection)
+
                                     }
                                     if (action == 'deleteIndex') {
                                         if (indexExist)
                                             objectStore.deleteIndex(index)
                                         else
-                                            console.log('index does not exist')
+                                            errorHandler(data, 'index does not exist', database, collection)
                                     }
                                     db2.result.close()
 
@@ -460,7 +492,7 @@ const index = (action, data) => {
         
                     } else {
                         db.close()
-                        console.log('collection:', collection ,'does not exist')
+                        errorHandler(data, `collection: ${collection} does not exist`, database, collection)
                         resolve(data)
                     }
                 });                                        
@@ -468,14 +500,13 @@ const index = (action, data) => {
             }    
                        
             // openRequest.onerror = function() {
-            //     data.status = 'failed'
-            //     data.error = openRequest.error
+                // errorHandler(data, openRequest.error)
             // };
 
         }
 
     }, (err) => {
-        console.log(err);
+        errorHandler(data, err)
     });
 }
 
@@ -498,7 +529,10 @@ function deleteDocument(data) {
 
 const document = (action, data) => {
     return new Promise((resolve, reject) => {
-        var documents = []
+        if (!data['timeStamp'])
+            data['timeStamp'] = new Date().toISOString()
+        
+        let documents = []
         let databases = data.database;  
         if (!Array.isArray(databases))
             databases = [databases]
@@ -515,32 +549,38 @@ const document = (action, data) => {
                     let collectionExist = db.objectStoreNames.contains(collection)
                     if (!collectionExist) { 
                         db.close()
-                        getDatabase({database, collection}).then((db) => {
-                            let transaction = db.transaction([collection], "readwrite");
-                            let objectStore = transaction.objectStore(collection);
-                            
-                            if (data.filter) {
-                                readDocuments(data).then((filterDocs) => {
-                                    runDocs(action, data, objectStore, documents, filterDocs).then(() => {
-                                        db.close()
-                                        collectionsLength -= 1
+                        getDatabase({database, collection}).then((db) => {                            
+                            if (data.filter || action == 'readDocument') {
+                                db.close()
+                                readDocuments(data, database, collection).then((filterDocs) => {
+                                    getDatabase({database}).then((db) => {
+                                        let transaction = db.transaction([collection], "readwrite");
+                                        let objectStore = transaction.objectStore(collection);
                                         
-                                        if (!collectionsLength)
-                                            databasesLength -= 1
-                                        
-                                        if (!databasesLength && !collectionsLength) {
-                                            data = createData(action, data, documents, filterDocs)
-                                            resolve(data)
-                                        }
+                                        runDocs({action, data, objectStore, documents, filterDocs, database, collection}).then(() => {
+                                            db.close()
+                                            collectionsLength -= 1
+                                            
+                                            if (!collectionsLength)
+                                                databasesLength -= 1
+                                            
+                                            if (!databasesLength && !collectionsLength) {
+                                                data = createData(action, data, documents, filterDocs)
+                                                resolve(data)
+                                            }
+                                        })
                                     })
     
                                 })
                             } else {
-                                runDocs(action, data, objectStore, documents).then(() => {
+                                let transaction = db.transaction([collection], "readwrite");
+                                let objectStore = transaction.objectStore(collection);
+    
+                                runDocs({action, data, objectStore, documents, database, collection}).then(() => {
                                     db.close()
                                     collectionsLength -= 1
                                     
-                                    if (collectionsLength == 0)
+                                    if (!collectionsLength)
                                         databasesLength -= 1
 
                                     if (!databasesLength && !collectionsLength) {
@@ -554,35 +594,38 @@ const document = (action, data) => {
                             console.log(err);
                         })
 
-                    } else {
-                        let transaction = db.transaction([collection], "readwrite");
-                        let objectStore = transaction.objectStore(collection);
-                        
-                        
-                        if (data.filter) {
-                            readDocuments(data).then((filterDocs) => {
-                                runDocs(action, data, objectStore, documents, filterDocs).then(() => {
-                                    db.close()
-                                    collectionsLength -= 1
+                    } else { 
+                        if (data.filter || action == 'readDocument') {
+                            db.close()
+                            readDocuments(data, database, collection).then((filterDocs) => {
+                                getDatabase({database}).then((db) => {
+                                    let transaction = db.transaction([collection], "readwrite");
+                                    let objectStore = transaction.objectStore(collection);
                                     
-                                    if (collectionsLength == 0)
-                                        databasesLength -= 1
+                                    runDocs({action, data, objectStore, documents, filterDocs, database, collection}).then(() => {
+                                        db.close()
+                                        collectionsLength -= 1
                                         
-                                    if (!databasesLength && !collectionsLength) {
-                                        data = createData(action, data, documents, filterDocs)
-                                        resolve(data)
-                                    }
+                                        if (!collectionsLength)
+                                            databasesLength -= 1
+                                            
+                                        if (!databasesLength && !collectionsLength) {
+                                            data = createData(action, data, documents, filterDocs)
+                                            resolve(data)
+                                        }
+                                    })                                
                                 })
-
                             })
                         } else {
-                            runDocs(action, data, objectStore, documents).then(() => {
+                            let transaction = db.transaction([collection], "readwrite");
+                            let objectStore = transaction.objectStore(collection);
+    
+                            runDocs({action, data, objectStore, documents, database, collection}).then(() => {
                                 db.close()
                                 collectionsLength -= 1
                                 
-                                if (collectionsLength == 0)
+                                if (!collectionsLength)
                                     databasesLength -= 1
-                                        
                                 if (!databasesLength && !collectionsLength) {
                                     data = createData(action, data, documents)
                                     resolve(data)
@@ -601,113 +644,123 @@ const document = (action, data) => {
 }
 
 function createData(action, data, documents, filterDocs) {
-    if (action == 'updateDocument') {
-        data.data = documents
-        if (data.filter && data.filter.sort)
-            data.data = sortData(data.data, data.filter.sort)
+    data.request = data.data 
+    data.data = documents
 
-    }
-    if (action == 'createDocument')
-        data.data = documents
-    if (action == 'readDocument'){
-        if (filterDocs && filterDocs.length)
-            data.data = documents.concat(filterDocs)
-        else
-            data.data = documents
-    }
-    if (action == 'deleteDocument')
-        data.data = documents
     if (data.filter && data.filter.sort)
         data.data = sortData(data.data, data.filter.sort)
     return data
 }
 
-function runDocs(action, data, objectStore, documents, filterDocs) {
+function runDocs({action, data, objectStore, documents, filterDocs, database, collection}) {
     return new Promise((resolve, reject) => {
-        let log = []
-        let updateData;
-
-        let docs = data.data;
-        if (!Array.isArray(docs))
-            docs = [docs]
+        let docs = []
+    
+        if (Array.isArray(data.data))
+            docs.push(...data.data);
+        else if (data.data != undefined)
+            docs.push(data.data)
+        
 
         if (filterDocs && filterDocs.length) {
+            if (action == 'readDocument')
+                documents.push(...filterDocs)
+
             if (action == 'updateDocument') {
-                updateData = {}
+                let updateData = docs[0];
+                if (updateData)
+                    docs.shift();
                 for (let filterDoc of filterDocs) {
                     filterDoc = dotNotationToObject(filterDoc, updateData)
-                    documents.push(filterDoc)
+                    docs.push(filterDoc)
                 }
             }
+
             if (action == 'deleteDocument')
                 docs.push(...filterDocs)
         }
 
         let docsLength = docs.length
-        for (let doc of docs) {
+       
+        if (docsLength > 0) {
+            for (let doc of docs) {
+                // ToDo deDuplcate document_id per collection
+                if (action == 'updateDocument' || action == 'deleteDocument') {
+                    if (doc._id) {
+                        doc['organization_id'] = data.organization_id
+                        doc['modified'] = {on: data.timeStamp, by: data.user || data.clientId}
 
-            if (action == 'updateDocument' || action == 'deleteDocument') {
-                if (!doc._id && data.upsert == true)
-                    doc['_id'] = ObjectId()
-                updateDoc(data, doc, objectStore).then((doc) => {
-                    documents.push(doc)
-                    docsLength -= 1
-                    if (!docsLength) {
-                        resolve()
+                        updateDoc(action, data, doc, objectStore, database, collection).then((doc) => {
+                            doc.db = 'indexeddb'
+                            doc.database = database
+                            doc.collection = collection
+                            documents.push(doc)
+                            docsLength -= 1
+                            if (!docsLength) {
+                                resolve()
+                            }
+                        })    
+                    } else {
+                        docsLength -= 1
+                        if (!docsLength)
+                            resolve()
                     }
-                })
-            } else {
-                let request;
-                if (action == 'createDocument') {
-                    if (!doc._id)
-                        doc['_id'] = ObjectId()
-                    doc = dotNotationToObject(doc)
-
-                    request = objectStore.add(doc);
-                }
-
-                if (action == 'readDocument') {
-                    request = objectStore.get(doc._id);
-                }
-                
-                request.onsuccess = function() {
-                    data.status = 'success'
+                } else {
+                    let request;
                     if (action == 'createDocument') {
-                        documents.push(doc)
+                        if (!doc._id)
+                            doc['_id'] = ObjectId()
+                        doc = dotNotationToObject(doc)
+
+                        doc['organization_id'] = data.organization_id
+                        doc['created'] = {on: data.timeStamp, by: data.user || data.clientId}
+                        request = objectStore.add(doc);
                     }
-                    if (action == 'readDocument')
-                        documents.push(request.result)
+
+                    if (action == 'readDocument') {
+                        request = objectStore.get(doc._id);
+                    }
                     
-                    docsLength -= 1
-                    if (!docsLength) {                        
+                    request.onsuccess = function() {
+                        if (request.result) {
+                            if (action == 'readDocument')
+                                doc = request.result
+                            doc.db = 'indexeddb'
+                            doc.database = database
+                            doc.collection = collection
+            
+                            documents.push(doc)
+                        }
+                        docsLength -= 1
+                        if (!docsLength) {                        
+                            resolve()
+                        }
+                    };
+                    
+                    request.onerror = function() {
+                        errorHandler(data, {message: request.error, data: doc}, database, objectStore.name)
                         resolve()
-                    }
-                };
-                
-                request.onerror = function() {
-                    data.status = 'failed'
-                    log.push({message: request.error, data: doc})
-                };
+                    };
+                }
             }
+        } else {
+            resolve()
         }
     }, (err) => {
-        console.log(err);
+        errorHandler(data, {message: err, data: doc}, database, objectStore.name)
     })
 }
 
-function updateDoc(data, doc, objectStore) {
+function updateDoc(action, data, doc, objectStore, database, collection) {
     return new Promise((resolve, reject) => {
-        if (!doc._id) {
-            data['error'] = 'requires _id'
-        } else {
             let get = objectStore.get(doc._id)
             get.onsuccess = function() {;
                 
                 let result = get.result
                 if (result || data.upsert == true) {
                     let modify = true
-                    if (doc.modified && result.modified)
-                        if (result.modified.on < doc.modified.on)
+                    if (result && doc.modified && result.modified)
+                        if (doc.modified.on < result.modified.on)
                             modify = false
 
                     if (modify) {
@@ -732,13 +785,11 @@ function updateDoc(data, doc, objectStore) {
                             let put = objectStore.put(doc);
                             
                             put.onsuccess = function() {
-                                data.status = 'success',
                                 resolve(doc)
                             };
                             
                             put.onerror = function() {
-                                data.status = 'failed'
-                                data.error = put.error
+                                errorHandler(data, put.error, database, collection, doc)
                                 resolve(doc)
                             };
     
@@ -748,50 +799,56 @@ function updateDoc(data, doc, objectStore) {
                             let deleteDoc = objectStore.delete(doc._id);
                             
                             deleteDoc.onsuccess = function() {
-                                data.status = 'success',
                                 resolve(doc)
                             };
                             
                             deleteDoc.onerror = function() {
-                                data.status = 'failed'
-                                data.error = deleteDoc.error
+                                errorHandler(data, deleteDoc.error, database, collection, doc)
                                 resolve(doc)
                             };
                         }
     
+                    } else {
+                        // ToDo: handle if _id not found upsert
+                        errorHandler(data, 'doc in db is newer', database, collection, doc)
+                        resolve(doc)
                     }
                 } else {
-                    data.status = 'failed'
-                    data.error = 'document doest not exist and upsert is not true'
+                    errorHandler(data, 'document doest not exist and upsert is not true', database, collection, doc)
+                    resolve(doc)
                 }
 
             };
             
             get.onerror = function() {
-                data.status = 'failed'
-                data.error = get.error
+                errorHandler(data, get.error, database, collection, doc)
+                resolve(doc)
             };
-        }
+        
     })
 }
 
-const readDocuments = (data) => {
+const readDocuments = (data, database, collection) => {
     return new Promise((resolve, reject) => {
-        let openRequest = indexedDB.open(data.database);
+        let openRequest = indexedDB.open(database);
         
         openRequest.onsuccess = function() {
             let db = openRequest.result;
             try {
-                let transaction = db.transaction([data.collection], "readonly");
-                let collection = transaction.objectStore(data.collection);
+                let transaction = db.transaction([collection], "readonly");
+                let objectStore = transaction.objectStore(collection);
                 let results = [];
-                // let index = collection.index(filter.name);
+                // let index = objectStore.index(filter.name);
                 // let request = index.openCursor(IDBKeyRange.upperBound(filter.value));
-                let request = collection.openCursor();
+                let request = objectStore.openCursor();
                 // transaction.oncomplete = resolve(results);
 
                 request.onsuccess = function() {
                     let isFilter;
+                    // if (data['organization_id']) {
+					// 	data['filter']['query']['organization_id'] = data['organization_id'];
+					// }
+
                     let cursor = request.result;
                     if (cursor) {
                         let value = cursor.value;
@@ -801,22 +858,24 @@ const readDocuments = (data) => {
                             results.push(value)
                         cursor.continue();
                     } else {
-                        data.data = results
+                        let docs = results
                         if (data.filter) {
                             if (data.filter.search)
-                                data.data = searchData(data.data, data.filter)
+                            docs = searchData(docs, data.filter)
                         }
-                        resolve(data)
+
+                        resolve(docs)
                     }
                 };
                 
                 request.onerror = function() {
                     request.data = []
-                    reject(request.error)
+                    errorHandler(data, request.error, database, collection)
+                    resolve(data)
                 };
             } catch (err) {
                 data.data = []
-                // data.error = err
+                errorHandler(data, err, database)
                 resolve(data)
                 return 
             }
@@ -824,7 +883,8 @@ const readDocuments = (data) => {
         };
 
         openRequest.onerror = function() {
-            reject(openRequest.error)
+            errorHandler(data, openRequest.error)
+            resolve(data)
         };
     })
 }
@@ -952,8 +1012,25 @@ async function generateDB(data) {
         return true			
 		
 	} catch (error) {
-		console.log(error)
+        errorHandler(data, error)
 	}
+}
+
+function errorHandler(data, error, database, collection){
+    if (typeof error == 'object')
+        error['db'] = 'indexeddb'
+    else
+        error = {db: 'indexeddb', message: error}
+
+    if (database)
+        error['database'] = database
+    if (collection)
+        error['collection'] = collection
+    if(data.error)
+        data.error.push(error)
+    else
+        data.error = [error]
+
 }
 
 const ObjectId = (rnd = r16 => Math.floor(r16).toString(16)) =>
