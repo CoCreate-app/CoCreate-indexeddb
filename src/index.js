@@ -30,8 +30,15 @@ const getDatabase = (data) => {
 const dbVersion = new Map()
 const Database = (action, data) => {
     return new Promise((resolve, reject) => {
+        let type = 'database'
+        let databaseArray = [];
+
+        if (data.request)
+            data[type] = data.request
+
         if (!data['timeStamp'])
             data['timeStamp'] = new Date().toISOString()
+
         if (action == 'readDatabase') {
             indexedDB.databases().then((databases) => {
                 data.databases = databases
@@ -238,7 +245,11 @@ function deleteCollection(data) {
 
 const collection = (action, data) => {
     return new Promise((resolve, reject) => {
+        let type = 'collection'
         let collectionArray = [];
+
+        if (data.request)
+            data[type] = data.request
 
         if (!data['timeStamp'])
             data['timeStamp'] = new Date().toISOString()
@@ -256,8 +267,8 @@ const collection = (action, data) => {
                 db.close()
                 let objectStoreNames = Array.from(db.objectStoreNames)
                 if (action == 'readCollection') {
-                    if (!data.collection)
-                        data.collection = []
+                    if (!data[type])
+                        data[type] = []
                     data.data = [];
                     
                     for (let collection of Array.from(objectStoreNames)){
@@ -266,16 +277,15 @@ const collection = (action, data) => {
 
                     databasesLength -= 1
                     if (!databasesLength) {
-                        data.collection = collectionArray
-                        resolve(data)
+                        resolve(createData(data, collectionArray, type))
                     }
 
                 } else {
                     let collections
                     if (action == 'updateCollection')
-                        collections = Object.entries(data.collection)
+                        collections = Object.entries(data[type])
                     else
-                        collections = data.collection;
+                        collections = data[type];
                     if (!Array.isArray(collections))
                         collections = [collections]
                     let collectionsLength = collections.length
@@ -302,15 +312,14 @@ const collection = (action, data) => {
                                 
                                     db.result.close() 
 
-                                    collectionArray.push({name: collection, db: 'indexeddb', database})                                      
+                                    collectionArray.push({name: value, db: 'indexeddb', database})                                      
                                     collectionsLength -= 1
 
                                     if (!collectionsLength)
                                         databasesLength -= 1
 
                                     if (!databasesLength && !collectionsLength){
-                                        data.collection = collectionArray
-                                        resolve(data)
+                                        resolve(createData(data, collectionArray, type))
                                     }                                    
                     
                                 } else {
@@ -329,8 +338,7 @@ const collection = (action, data) => {
                                         databasesLength -= 1
         
                                     if (!databasesLength && !collectionsLength) {
-                                        data.collection = collectionArray
-                                        resolve(data)
+                                        resolve(createData(data, collectionArray, type))
                                     }
     
                                 }
@@ -346,8 +354,7 @@ const collection = (action, data) => {
                                 databasesLength -= 1
 
                             if (!databasesLength && !collectionsLength) {
-                                data.collection = collectionArray
-                                resolve(data)
+                                resolve(createData(data, collectionArray, type))
                             }
                         }
 
@@ -367,7 +374,7 @@ const collection = (action, data) => {
             };
         }
     }, (err) => {
-        errorHandler(data, err, database)
+        errorHandler(data, err)
     });
 }
 
@@ -390,9 +397,15 @@ function deleteIndex(data) {
 
 const index = (action, data) => {
     return new Promise((resolve, reject) => {
+        let type = 'index'
+        let indexArray = [];
+
+        if (data.request)
+            data[type] = data.request
+
         if (!data['timeStamp'])
             data['timeStamp'] = new Date().toISOString()
-
+        
         let databases = data.database;  
         if (!Array.isArray(databases))
             databases = [databases]
@@ -413,10 +426,8 @@ const index = (action, data) => {
                         let indexNames = Array.from(objectStore.indexNames)
     
                         if (action == 'readIndex') {
-                            if (!data.index)
-                                data.index = []
                             for (let index of Array.from(indexNames)) {
-                                data.index.push(index)
+                                indexArray.push({name: index, db: 'indexeddb', database, collection})
                             }
                             collectionsLength -= 1
                             db.close()
@@ -425,15 +436,15 @@ const index = (action, data) => {
                                 databasesLength -= 1
     
                             if (!databasesLength && !collectionsLength)
-                                resolve(data)
+                                resolve(createData(data, indexArray, type))
 
                         } else {
                             db.close()
                             let indexes
                             if (action == 'updateIndex')
-                                indexes = Object.entries(data.index)
+                                indexes = Object.entries(data[type])
                             else
-                                indexes = data.index;
+                                indexes = data[type];
                             if (!Array.isArray(indexes))
                                 indexes = [indexes]
                             
@@ -451,8 +462,10 @@ const index = (action, data) => {
                                     let indexExist = indexNames.includes(index)
 
                                     if (action == 'createIndex') {
-                                        if (!indexExist)
+                                        if (!indexExist) {
                                             objectStore.createIndex(index, index, {unique: false})
+                                            indexArray.push({name: index, db: 'indexeddb', database, collection})
+                                        }
                                         else
                                             errorHandler(data, 'index exist', database, collection)
                                     }
@@ -460,15 +473,18 @@ const index = (action, data) => {
                                         let valueExist = indexNames.includes(value)
                                         let indexObj = objectStore.index(index);
                                         if (indexExist && !valueExist) {
-                                                indexObj.name = value;
+                                            indexObj.name = value;
+                                            indexArray.push({name: value, db: 'indexeddb', database, collection})
                                         }
                                         else
                                             errorHandler(data, 'index does not exist', database, collection)
 
                                     }
                                     if (action == 'deleteIndex') {
-                                        if (indexExist)
+                                        if (indexExist) {
                                             objectStore.deleteIndex(index)
+                                            indexArray.push({name: index, db: 'indexeddb', database, collection})
+                                        }
                                         else
                                             errorHandler(data, 'index does not exist', database, collection)
                                     }
@@ -483,7 +499,7 @@ const index = (action, data) => {
                                         databasesLength -= 1                                    
                                     
                                     if (!databasesLength && !collectionsLength && !indexesLength) {
-                                        resolve(data)
+                                        resolve(createData(data, indexArray, type))
                                     }                                
                                 });
                             }
@@ -498,11 +514,6 @@ const index = (action, data) => {
                 });                                        
 
             }    
-                       
-            // openRequest.onerror = function() {
-                // errorHandler(data, openRequest.error)
-            // };
-
         }
 
     }, (err) => {
@@ -529,10 +540,18 @@ function deleteDocument(data) {
 
 const document = (action, data) => {
     return new Promise((resolve, reject) => {
+        let type = 'document'
+        let documents = []
+        
+        if (!data[type] && data.data)
+            data[type] = data.data
+
+        if (data.request)
+            data[type] = data.request
+
         if (!data['timeStamp'])
             data['timeStamp'] = new Date().toISOString()
         
-        let documents = []
         let databases = data.database;  
         if (!Array.isArray(databases))
             databases = [databases]
@@ -557,7 +576,7 @@ const document = (action, data) => {
                                         let transaction = db.transaction([collection], "readwrite");
                                         let objectStore = transaction.objectStore(collection);
                                         
-                                        runDocs({action, data, objectStore, documents, filterDocs, database, collection}).then(() => {
+                                        runDocs({action, data, objectStore, documents, filterDocs, database, collection, type}).then(() => {
                                             db.close()
                                             collectionsLength -= 1
                                             
@@ -565,8 +584,7 @@ const document = (action, data) => {
                                                 databasesLength -= 1
                                             
                                             if (!databasesLength && !collectionsLength) {
-                                                data = createData(action, data, documents, filterDocs)
-                                                resolve(data)
+                                                resolve(createData(data, documents, type))
                                             }
                                         })
                                     })
@@ -576,7 +594,7 @@ const document = (action, data) => {
                                 let transaction = db.transaction([collection], "readwrite");
                                 let objectStore = transaction.objectStore(collection);
     
-                                runDocs({action, data, objectStore, documents, database, collection}).then(() => {
+                                runDocs({action, data, objectStore, documents, database, collection, type}).then(() => {
                                     db.close()
                                     collectionsLength -= 1
                                     
@@ -584,14 +602,21 @@ const document = (action, data) => {
                                         databasesLength -= 1
 
                                     if (!databasesLength && !collectionsLength) {
-                                        data = createData(action, data, documents)
-                                        resolve(data)
+                                        resolve(createData(data, documents, type))
                                     }
                                 })
                             }
 
-                        }, (err) => {
-                            console.log(err);
+                        }).catch((error) => {
+                            errorHandler(data, {message: error, data}, database)
+                            collectionsLength -= 1
+                                            
+                            if (!collectionsLength)
+                                databasesLength -= 1
+
+                            if (!databasesLength && !collectionsLength) 
+                                resolve(createData(data, documents, type))
+        
                         })
 
                     } else { 
@@ -602,7 +627,7 @@ const document = (action, data) => {
                                     let transaction = db.transaction([collection], "readwrite");
                                     let objectStore = transaction.objectStore(collection);
                                     
-                                    runDocs({action, data, objectStore, documents, filterDocs, database, collection}).then(() => {
+                                    runDocs({action, data, objectStore, documents, filterDocs, database, collection, type}).then(() => {
                                         db.close()
                                         collectionsLength -= 1
                                         
@@ -610,8 +635,7 @@ const document = (action, data) => {
                                             databasesLength -= 1
                                             
                                         if (!databasesLength && !collectionsLength) {
-                                            data = createData(action, data, documents, filterDocs)
-                                            resolve(data)
+                                            resolve(createData(data, documents, type))
                                         }
                                     })                                
                                 })
@@ -620,46 +644,43 @@ const document = (action, data) => {
                             let transaction = db.transaction([collection], "readwrite");
                             let objectStore = transaction.objectStore(collection);
     
-                            runDocs({action, data, objectStore, documents, database, collection}).then(() => {
+                            runDocs({action, data, objectStore, documents, database, collection, type}).then(() => {
                                 db.close()
                                 collectionsLength -= 1
                                 
                                 if (!collectionsLength)
                                     databasesLength -= 1
                                 if (!databasesLength && !collectionsLength) {
-                                    data = createData(action, data, documents)
-                                    resolve(data)
+                                    resolve(createData(data, documents, type))
                                 }
                             })
                         }
                     }
                 }
 
-            }, (err) => {
-                console.log(err);
+            }).catch((error) => {
+                errorHandler(data, {message: error, data}, database)
+
+                databasesLength -= 1
+
+                if (!databasesLength) 
+                    resolve(createData(data, documents, type))
             })
 
         }
     })
 }
 
-function createData(action, data, documents, filterDocs) {
-    data.request = data.data 
-    data.data = documents
-
-    if (data.filter && data.filter.sort)
-        data.data = sortData(data.data, data.filter.sort)
-    return data
-}
-
-function runDocs({action, data, objectStore, documents, filterDocs, database, collection}) {
+function runDocs({action, data, objectStore, documents, filterDocs, database, collection, type}) {
     return new Promise((resolve, reject) => {
         let docs = []
-    
-        if (Array.isArray(data.data))
-            docs.push(...data.data);
+        
+        if (Array.isArray(data[type]))
+            docs.push(...data[type]);
+        else if (data[type] != undefined && action == 'createDocument')
+            docs.push(data[type])
         else if (data.data != undefined)
-            docs.push(data.data)
+            docs.push({...data[type]})
         
 
         if (filterDocs && filterDocs.length) {
@@ -1032,6 +1053,27 @@ function errorHandler(data, error, database, collection){
         data.error = [error]
 
 }
+
+function createData(data, array, type) {
+    data.request = data.data || data[type] || {}
+
+    if (data.filter && data.filter.sort)
+        data[type] = sortData(array, data.filter.sort)
+    else
+        data[type] = array
+
+    if (type == 'document' || type == 'doc')
+        data.data = data[type]
+    
+    if (data.returnLog){
+        if (!data.log)
+            data.log = []
+        data.log.push(...data[type])
+    }
+
+    return data
+}
+
 
 const ObjectId = (rnd = r16 => Math.floor(r16).toString(16)) =>
     rnd(Date.now()/1000) + ' '.repeat(16).replace(/./g, () => rnd(Math.random()*16));
