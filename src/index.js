@@ -620,7 +620,7 @@ const document = (action, data) => {
                         })
 
                     } else { 
-                        if (data.filter || action == 'readDocument') {
+                        if (data.filter || action == 'readDocument' && !data.document) {
                             db.close()
                             readDocuments(data, database, collection).then((filterDocs) => {
                                 getDatabase({database}).then((db) => {
@@ -679,7 +679,7 @@ function runDocs({action, data, objectStore, documents, filterDocs, database, co
             docs.push(...data[type]);
         else if (data[type] != undefined && action == 'createDocument')
             docs.push(data[type])
-        else if (data.data != undefined)
+        else if (data[type] != undefined)
             docs.push({...data[type]})
         
 
@@ -759,7 +759,7 @@ function runDocs({action, data, objectStore, documents, filterDocs, database, co
                     };
                     
                     request.onerror = function() {
-                        errorHandler(data, {message: request.error, data: doc}, database, objectStore.name)
+                        errorHandler(data, {message: request.error, document: doc}, database, objectStore.name)
                         resolve()
                     };
                 }
@@ -768,7 +768,7 @@ function runDocs({action, data, objectStore, documents, filterDocs, database, co
             resolve()
         }
     }, (err) => {
-        errorHandler(data, {message: err, data: doc}, database, objectStore.name)
+        errorHandler(data, {message: err, document: doc}, database, objectStore.name)
     })
 }
 
@@ -922,7 +922,7 @@ async function generateDB(data) {
 		let organization = {
             database: organization_id,
 			collection: 'organizatons',
-			data: {
+			document: {
 				_id: organization_id,
 				name: 'untitled',
 				organization_id,
@@ -936,7 +936,7 @@ async function generateDB(data) {
 			let permissions = {	
                 database: organization_id,
 				collection: 'permissions',
-				data: {
+				document: {
 					_id: ObjectId(),
 					organization_id,
 					type: "apikey",
@@ -979,7 +979,7 @@ async function generateDB(data) {
 			let user = {
                 database: organization_id,
 				collection: 'users',
-				data: {
+				document: {
 					_id: user_id,
 					password: btoa('0000'),
 					connected_orgs: [organization_id],
@@ -995,7 +995,7 @@ async function generateDB(data) {
 			let role = {
                 database: organization_id,
 				collection: 'permissions',
-				data: {
+				document: {
 					_id: ObjectId(),
 					organization_id,
 					"type": "role",
@@ -1019,7 +1019,7 @@ async function generateDB(data) {
 				let data = {
                     database: organization_id,
 					collection: 'permissions',
-					data: {
+					document: {
 						_id: ObjectId(),
 						organization_id,
 						"type": "user_id",

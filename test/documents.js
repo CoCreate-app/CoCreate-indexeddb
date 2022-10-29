@@ -7,7 +7,7 @@ async function testDocuments() {
         let createDocument = await CoCreate.indexeddb.createDocument({
             database: ['testDB', 'testDB1', 'testDB2'],
             collection: ['testCollection', 'testCollection1', 'testCollection2'],  
-            data: {
+            document: {
                 organization_id: '5ff747727005da1c272740ab',
                 'books.action.title': 'matr',
                 sports: {basketball: {teams: ['bulls']}}
@@ -15,12 +15,12 @@ async function testDocuments() {
             
         })
         console.log('createDocument', createDocument)
-        let _id = createDocument.data[0]._id
+        let _id = createDocument.document[0]._id
 
         let readDocument = await CoCreate.indexeddb.readDocument({
             database: ['testDB', 'testDB1', 'testDB2'],
             collection: ['testCollection', 'testCollection1', 'testCollection2'],  
-            data: {
+            document: {
                 _id,
             }
             
@@ -30,7 +30,7 @@ async function testDocuments() {
         let updateDocument = await CoCreate.indexeddb.updateDocument({
             database: ['testDB', 'testDB1', 'testDB2'],
             collection: ['testCollection', 'testCollection1', 'testCollection2'],  
-            data: {
+            document: {
                 _id,
                 'books.action.title': 'matr',
                 sports: {basketball: {teams: ['lakers']}}
@@ -43,7 +43,7 @@ async function testDocuments() {
         let deleteDocument = await CoCreate.indexeddb.deleteDocument({
             database: ['testDB', 'testDB1', 'testDB2'],
             collection: ['testCollection', 'testCollection1', 'testCollection2'],  
-            // data: {
+            // document: {
             //     _id
             // }
             filter: { 
