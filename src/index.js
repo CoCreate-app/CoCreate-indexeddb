@@ -1062,8 +1062,8 @@ function createData(data, array, type) {
     else
         data[type] = array
 
-    if (type == 'document' || type == 'doc')
-        data.data = data[type]
+    // if (type == 'document' || type == 'doc')
+    //     data.data = data[type]
     
     if (data.returnLog){
         if (!data.log)
