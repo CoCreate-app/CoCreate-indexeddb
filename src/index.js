@@ -269,7 +269,6 @@ const collection = (action, data) => {
                 if (action == 'readCollection') {
                     if (!data[type])
                         data[type] = []
-                    data.data = [];
                     
                     for (let collection of Array.from(objectStoreNames)){
                         collectionArray.push({name: collection, db: 'indexeddb', database})
@@ -543,9 +542,6 @@ const document = (action, data) => {
         let type = 'document'
         let documents = []
         
-        if (!data[type] && data.data)
-            data[type] = data.data
-
         if (data.request)
             data[type] = data.request
 
@@ -890,14 +886,12 @@ const readDocuments = (data, database, collection) => {
                 };
                 
                 request.onerror = function() {
-                    request.data = []
                     errorHandler(data, request.error, database, collection)
-                    resolve(data)
+                    resolve([])
                 };
             } catch (err) {
-                data.data = []
                 errorHandler(data, err, database)
-                resolve(data)
+                resolve([])
                 return 
             }
 
@@ -1055,15 +1049,12 @@ function errorHandler(data, error, database, collection){
 }
 
 function createData(data, array, type) {
-    data.request = data.data || data[type] || {}
+    data.request = data[type] || {}
 
     if (data.filter && data.filter.sort)
         data[type] = sortData(array, data.filter.sort)
     else
         data[type] = array
-
-    // if (type == 'document' || type == 'doc')
-    //     data.data = data[type]
     
     if (data.returnLog){
         if (!data.log)
