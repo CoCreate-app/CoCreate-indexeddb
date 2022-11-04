@@ -680,8 +680,11 @@ function runDocs({action, data, objectStore, documents, filterDocs, database, co
         
 
         if (filterDocs && filterDocs.length) {
-            if (action == 'readDocument')
-                documents.push(...filterDocs)
+            if (action == 'readDocument') {
+                for (let i = 0; i < filterDocs.length; i++)
+                    documents.push({db: 'indexeddb', database, collection, ...filterDocs[i]})
+
+            }
 
             if (action == 'updateDocument') {
                 let updateData = docs[0];
