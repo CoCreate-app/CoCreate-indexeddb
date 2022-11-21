@@ -1,3 +1,21 @@
+# [1.3.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.2.11...v1.3.0) (2022-11-21)
+
+
+### Bug Fixes
+
+* readDocument returns documents containing db, database and collection ([344a027](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/344a0271694793e281a076f8e3babbed41e99ce9))
+* removed data.data ([7ffc284](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/7ffc28425838dc0df08de8c5e40ffc097b170b95))
+* removed data.data ([40412c4](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/40412c43355c5f9892d6c666213a643284172b82))
+* renamed data.data to data.document ([0550c6b](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/0550c6b7f1446d1524a705cab9237046cd0d6071))
+
+
+### Features
+
+* CRUD multiple databases, collections and documents with a single request. ([aaf9640](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/aaf9640c9a565ca75ee1ad6bf46067422eecb9dd))
+* data response also available as data.document, improved handeling of data[type] ([ff9b8de](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/ff9b8defd0283d4d6aa052dee8ae98e01733f921))
+* Params c valuesn be a string or an array ([46ecb92](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/46ecb92505c00ba0e581b65c04e41163e3510a15))
+* return db or indexeddb instance ([026b63d](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/026b63d9cb717e6158d4086ee95b985548f62775))
+
 ## [1.2.11](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.2.10...v1.2.11) (2022-10-02)
 
 
