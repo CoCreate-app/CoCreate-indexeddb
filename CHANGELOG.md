@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.3.0...v1.3.1) (2022-11-21)
+
+
+### Bug Fixes
+
+* bump d@cocreate ependencies ([010627d](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/010627d063f5020737ace585a560f5c7a2e599d5))
+
 # [1.3.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.2.11...v1.3.0) (2022-11-21)
 
 
