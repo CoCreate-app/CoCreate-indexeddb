@@ -1,3 +1,11 @@
+## [1.3.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.3.4...v1.3.5) (2022-11-22)
+
+
+### Bug Fixes
+
+* apply src: {{source}} to CoCreate.config ([5b0cab1](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/5b0cab1f0425b45272f44f570ac776da383c0925))
+* workflow docs ([2670996](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/2670996745798b203085622b6537dc64b6902a25))
+
 ## [1.3.4](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.3.3...v1.3.4) (2022-11-21)
 
 
