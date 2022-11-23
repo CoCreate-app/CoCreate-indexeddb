@@ -1044,7 +1044,7 @@ function errorHandler(data, error, database, collection){
         error['database'] = database
     if (collection)
         error['collection'] = collection
-    if(data.error)
+    if (data.error)
         data.error.push(error)
     else
         data.error = [error]
