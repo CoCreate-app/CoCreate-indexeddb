@@ -691,7 +691,7 @@ function runDocs({action, data, objectStore, documents, filterDocs, database, co
                 if (updateData)
                     docs.shift();
                 for (let filterDoc of filterDocs) {
-                    filterDoc = dotNotationToObject(filterDoc, updateData)
+                    filterDoc = dotNotationToObject(updateData, filterDoc)
                     docs.push(filterDoc)
                 }
             }
