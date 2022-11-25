@@ -62,8 +62,8 @@
   },
   "dependencies": {
     "@cocreate/docs": "^1.4.4",
-    "@cocreate/filter": "^1.10.3",
+    "@cocreate/filter": "^1.10.4",
     "@cocreate/hosting": "^1.6.3",
-    "@cocreate/utils": "^1.11.0"
+    "@cocreate/utils": "^1.12.0"
   }
 }

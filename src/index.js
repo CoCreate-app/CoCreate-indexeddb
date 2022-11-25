@@ -4,8 +4,7 @@
  *
  * SPDX-License-Identifier: MIT
  ********************************************************************************/
-import {dotNotationToObject} from '@cocreate/utils'
-import {searchData, sortData, queryData} from '@cocreate/filter/src/filter.js'
+import {dotNotationToObject, searchData, sortData, queryData} from '@cocreate/utils'
 
 function createDatabase(data){
     return Database('createDatabase', data)
