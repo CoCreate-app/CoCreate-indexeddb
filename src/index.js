@@ -1082,7 +1082,7 @@ function init() {
 
 init();
 
-export default {
+export {
     getDatabase,
     createDatabase,
     readDatabase,
