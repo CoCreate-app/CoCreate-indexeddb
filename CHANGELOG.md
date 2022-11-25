@@ -1,3 +1,12 @@
+## [1.3.8](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.3.7...v1.3.8) (2022-11-25)
+
+
+### Bug Fixes
+
+* bump dependencies ([45bbda1](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/45bbda1cb5be4618111c576cb1bc33b80ac45676))
+* CoCreate.crud.default removed bug causing default object ([3690c7b](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/3690c7b42ce65bd57a9080324be582d64bd8c241))
+* dotNotationToObject param order was in reverse ([2d234fc](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/2d234fc5c48799cd0a000fd7f414d1b54490421c))
+
 ## [1.3.7](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.3.6...v1.3.7) (2022-11-24)
 
 
