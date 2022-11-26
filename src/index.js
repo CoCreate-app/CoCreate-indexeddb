@@ -704,6 +704,10 @@ function runDocs({action, data, objectStore, documents, filterDocs, database, co
         if (docsLength > 0) {
             for (let doc of docs) {
                 // ToDo deDuplcate document_id per collection
+                delete doc.db
+                delete doc.database
+                delete doc.collection
+                
                 if (action == 'updateDocument' || action == 'deleteDocument') {
                     if (doc._id) {
                         doc['organization_id'] = data.organization_id
