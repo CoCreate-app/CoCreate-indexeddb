@@ -1,3 +1,10 @@
+## [1.3.12](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.3.11...v1.3.12) (2022-11-26)
+
+
+### Bug Fixes
+
+* delete db, database and collection from doc before storing in indexeddb ([642bca1](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/642bca11d98fb89b6f3c2750286971309b1417bc))
+
 ## [1.3.11](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.3.10...v1.3.11) (2022-11-26)
 
 
