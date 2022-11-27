@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.3.12...v1.4.0) (2022-11-27)
+
+
+### Features
+
+* if sort is applied creates index on object store before opening cursor ([ce667c5](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/ce667c59582cd34c4ed2d89e597cb240452c4497))
+
 ## [1.3.12](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.3.11...v1.3.12) (2022-11-26)
 
 
