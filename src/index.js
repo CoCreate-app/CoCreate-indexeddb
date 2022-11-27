@@ -424,7 +424,7 @@ const index = (action, data) => {
                         let indexNames = Array.from(objectStore.indexNames)
     
                         if (action == 'readIndex') {
-                            for (let index of Array.from(indexNames)) {
+                            for (let index of indexNames) {
                                 indexArray.push({name: index, db: 'indexeddb', database, collection})
                             }
                             collectionsLength -= 1
@@ -860,43 +860,51 @@ const readDocuments = (data, database, collection) => {
             try {
                 let transaction = db.transaction([collection], "readonly");
                 let objectStore = transaction.objectStore(collection);
-                let results = [];
-                // let index = objectStore.index(filter.name);
-                // let request = index.openCursor(IDBKeyRange.upperBound(filter.value));
-                let request = objectStore.openCursor();
-                // transaction.oncomplete = resolve(results);
 
-                request.onsuccess = function() {
-                    let isFilter;
-                    // if (data['organization_id']) {
-					// 	data['filter']['query']['organization_id'] = data['organization_id'];
-					// }
+                let count = objectStore.count();
+                count.onsuccess = function() {
+                    data.filter.count = count.result
+                }
 
-                    let cursor = request.result;
-                    if (cursor) {
-                        let value = cursor.value;
-                        if (data.filter && data.filter.query)
-                            isFilter = queryData(value, data.filter.query);
-                        if (isFilter !== false)
-                            results.push(value)
-                        cursor.continue();
+                if (data.filter && data.filter.sort && data.filter.sort[0] && data.filter.sort[0].name) {
+                    let sortType = data.filter.sort[0].type
+                    if (sortType == -1)
+                        sortType = 'prev'
+                    else
+                        sortType = 'next'
+
+                    let indexNames = Array.from(objectStore.indexNames)
+                    let indexName = data.filter.sort[0].name
+                    let indexExist = indexNames.includes(indexName)
+                    if (!indexExist) {
+                        db.close()
+                        getDatabase({database, upgrade: true}).then((db2) => {
+                            let transaction = db2.transaction;
+                            let objectStore = transaction.objectStore(collection);
+                            objectStore.createIndex(indexName, indexName, {unique: false})
+                            const indexStore = objectStore.index(indexName);
+
+                            readDocs(data, database, collection, indexStore, sortType).then((results) => {
+                                db2.close()
+                                resolve(results)
+                            })
+                        })
                     } else {
-                        let docs = results
-                        if (data.filter) {
-                            if (data.filter.search)
-                            docs = searchData(docs, data.filter)
-                        }
-
-                        resolve(docs)
+                        const indexStore = objectStore.index(indexName);
+                        readDocs(data, database, collection, indexStore, sortType).then((results) => {
+                            db.close()
+                            resolve(results)
+                        })
                     }
-                };
-                
-                request.onerror = function() {
-                    errorHandler(data, request.error, database, collection)
-                    resolve([])
-                };
+                } else {
+                    readDocs(data, database, collection, objectStore).then((results) => {
+                        db.close()
+                        resolve(results)
+                    })      
+                }
             } catch (err) {
                 errorHandler(data, err, database)
+                db.close()
                 resolve([])
                 return 
             }
@@ -908,6 +916,48 @@ const readDocuments = (data, database, collection) => {
             resolve(data)
         };
     })
+}
+
+async function readDocs(data, database, collection, objectStore, sortType) {
+    return new Promise((resolve, reject) => {
+                
+        let results = [];
+        let index = data.filter.startIndex || 0
+        let limit = data.filter.limit
+        if (limit)
+            limit = index + limit;
+
+        const request = objectStore.openCursor(null, sortType);
+        request.onsuccess = function() {
+            let cursor = request.result;
+            if (cursor) {
+                let isFilter = true;
+                let value = cursor.value;
+                if (data.filter && data.filter.query)
+                    isFilter = queryData(value, data.filter.query);
+                if (isFilter && data.filter.search)
+                    isFilter = searchData(value, data.filter.search);
+                if (isFilter !== false)
+                    results.push(value)
+                if (limit && limit == results.length) {
+                    results = results.slice(index, limit)
+                    resolve(results)
+                } else
+                    cursor.continue();
+            } else {
+                if (index)
+                    results = results.slice(index)
+                resolve(results)
+            }
+        }
+        
+        request.onerror = function() {
+            errorHandler(data, request.error, database, collection)
+            db.close()
+            resolve([])
+        };
+
+    });
 }
 
 async function generateDB(data) {
