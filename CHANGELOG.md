@@ -1,3 +1,10 @@
+## [1.4.4](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.4.3...v1.4.4) (2022-11-28)
+
+
+### Bug Fixes
+
+* if condition data.filter ([7d1aee2](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/7d1aee263307709e82ee522e954ffa8b37ad0c29))
+
 ## [1.4.3](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.4.2...v1.4.3) (2022-11-28)
 
 
