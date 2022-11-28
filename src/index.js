@@ -865,8 +865,19 @@ const readDocuments = (data, database, collection) => {
                 count.onsuccess = function() {
                     data.filter.count = count.result
                 }
-
+                
+                let isIndex = false
+                let indexName;
                 if (data.filter && data.filter.sort && data.filter.sort[0] && data.filter.sort[0].name) {
+                    indexName = data.filter.sort[0].name
+                    if (indexName.includes('-')) {
+                        isIndex = false
+                    }
+                    else
+                        isIndex = true
+                }
+
+                if (isIndex) {
                     let sortType = data.filter.sort[0].type
                     if (sortType == -1)
                         sortType = 'prev'
@@ -874,7 +885,6 @@ const readDocuments = (data, database, collection) => {
                         sortType = 'next'
 
                     let indexNames = Array.from(objectStore.indexNames)
-                    let indexName = data.filter.sort[0].name
                     let indexExist = indexNames.includes(indexName)
                     if (!indexExist) {
                         db.close()
@@ -884,20 +894,20 @@ const readDocuments = (data, database, collection) => {
                             objectStore.createIndex(indexName, indexName, {unique: false})
                             const indexStore = objectStore.index(indexName);
 
-                            readDocs(data, database, collection, indexStore, sortType).then((results) => {
+                            readDocs(data, database, collection, indexStore, isIndex, sortType).then((results) => {
                                 db2.close()
                                 resolve(results)
                             })
                         })
                     } else {
                         const indexStore = objectStore.index(indexName);
-                        readDocs(data, database, collection, indexStore, sortType).then((results) => {
+                        readDocs(data, database, collection, indexStore, isIndex, sortType).then((results) => {
                             db.close()
                             resolve(results)
                         })
                     }
                 } else {
-                    readDocs(data, database, collection, objectStore).then((results) => {
+                    readDocs(data, database, collection, objectStore, isIndex).then((results) => {
                         db.close()
                         resolve(results)
                     })      
@@ -918,14 +928,18 @@ const readDocuments = (data, database, collection) => {
     })
 }
 
-async function readDocs(data, database, collection, objectStore, sortType) {
+async function readDocs(data, database, collection, objectStore, isIndex, sortType) {
     return new Promise((resolve, reject) => {
                 
-        let results = [];
-        let index = data.filter.startIndex || 0
-        let limit = data.filter.limit
-        if (limit)
-            limit = index + limit;
+        let results = [], index = 0, limit
+        if (data.filter) {
+            if (data.filter.startIndex)
+                index = data.filter.startIndex
+            if (data.filter.limit)
+                limit = data.filter.limit
+            if (limit)
+                limit = index + limit;
+        }
 
         const request = objectStore.openCursor(null, sortType);
         request.onsuccess = function() {
@@ -933,13 +947,15 @@ async function readDocs(data, database, collection, objectStore, sortType) {
             if (cursor) {
                 let isFilter = true;
                 let value = cursor.value;
-                if (data.filter && data.filter.query)
-                    isFilter = queryData(value, data.filter.query);
-                if (isFilter && data.filter.search)
-                    isFilter = searchData(value, data.filter.search);
+                if (data.filter) {
+                    if (data.filter.query)
+                        isFilter = queryData(value, data.filter.query);
+                    if (isFilter && data.filter.search)
+                        isFilter = searchData(value, data.filter.search);
+                }
                 if (isFilter !== false)
                     results.push(value)
-                if (limit && limit == results.length) {
+                if (isIndex && limit && limit == results.length) {
                     results = results.slice(index, limit)
                     resolve(results)
                 } else
