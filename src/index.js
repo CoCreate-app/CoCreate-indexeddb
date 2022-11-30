@@ -1024,10 +1024,9 @@ async function generateDB(data) {
 					},
 					"modules": {
 						"actions": [
-							"login",
-							"signin",
+							"signIn",
+                            "signUp",
 							"userCurrentOrg",
-							"createUser",
 							"createOrg",
 							"runIndustry"
 						],
@@ -1151,7 +1150,7 @@ function init() {
 
 init();
 
-export {
+export default {
     getDatabase,
     createDatabase,
     readDatabase,
