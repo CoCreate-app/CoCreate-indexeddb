@@ -740,8 +740,14 @@ function runDocs({action, data, objectStore, documents, filterDocs, database, co
                         request = objectStore.add(doc);
                     }
 
-                    if (action == 'readDocument') {
+                    if (action == 'readDocument' && doc._id) {
                         request = objectStore.get(doc._id);
+                    } else {
+                        docsLength -= 1
+                        errorHandler(data, {message: 'requires _id', document: doc}, database, objectStore.name)
+                        if (!docsLength) {                        
+                            resolve()
+                        }
                     }
                     
                     request.onsuccess = function() {
@@ -863,7 +869,8 @@ const readDocuments = (data, database, collection) => {
 
                 let count = objectStore.count();
                 count.onsuccess = function() {
-                    data.filter.count = count.result
+                    if (count && count.result)
+                        data.filter.count = count.result
                 }
                 
                 let isIndex = false
@@ -878,11 +885,11 @@ const readDocuments = (data, database, collection) => {
                 }
 
                 if (isIndex) {
-                    let sortType = data.filter.sort[0].type
-                    if (sortType == -1)
-                        sortType = 'prev'
+                    let direction = data.filter.sort[0].direction
+                    if (direction == -1)
+                        direction = 'prev'
                     else
-                        sortType = 'next'
+                        direction = 'next'
 
                     let indexNames = Array.from(objectStore.indexNames)
                     let indexExist = indexNames.includes(indexName)
@@ -894,14 +901,14 @@ const readDocuments = (data, database, collection) => {
                             objectStore.createIndex(indexName, indexName, {unique: false})
                             const indexStore = objectStore.index(indexName);
 
-                            readDocs(data, database, collection, indexStore, isIndex, sortType).then((results) => {
+                            readDocs(data, database, collection, indexStore, isIndex, direction).then((results) => {
                                 db2.close()
                                 resolve(results)
                             })
                         })
                     } else {
                         const indexStore = objectStore.index(indexName);
-                        readDocs(data, database, collection, indexStore, isIndex, sortType).then((results) => {
+                        readDocs(data, database, collection, indexStore, isIndex, direction).then((results) => {
                             db.close()
                             resolve(results)
                         })
@@ -928,7 +935,7 @@ const readDocuments = (data, database, collection) => {
     })
 }
 
-async function readDocs(data, database, collection, objectStore, isIndex, sortType) {
+async function readDocs(data, database, collection, objectStore, isIndex, direction) {
     return new Promise((resolve, reject) => {
                 
         let results = [], index = 0, limit
@@ -941,7 +948,7 @@ async function readDocs(data, database, collection, objectStore, isIndex, sortTy
                 limit = index + limit;
         }
 
-        const request = objectStore.openCursor(null, sortType);
+        const request = objectStore.openCursor(null, direction);
         request.onsuccess = function() {
             let cursor = request.result;
             if (cursor) {
