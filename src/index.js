@@ -866,13 +866,14 @@ const readDocuments = (data, database, collection) => {
             try {
                 let transaction = db.transaction([collection], "readonly");
                 let objectStore = transaction.objectStore(collection);
-
-                let count = objectStore.count();
-                count.onsuccess = function() {
-                    if (count && count.result)
-                        data.filter.count = count.result
-                }
                 
+                if (data.filter) {
+                    let count = objectStore.count();
+                    count.onsuccess = function() {
+                        data.filter.count = count.result
+                    }
+                }
+
                 let isIndex = false
                 let indexName;
                 if (data.filter && data.filter.sort && data.filter.sort[0] && data.filter.sort[0].name) {
@@ -898,11 +899,16 @@ const readDocuments = (data, database, collection) => {
                         getDatabase({database, upgrade: true}).then((db2) => {
                             let transaction = db2.transaction;
                             let objectStore = transaction.objectStore(collection);
-                            objectStore.createIndex(indexName, indexName, {unique: false})
+                            try {
+                                objectStore.createIndex(indexName, indexName, {unique: false})
+                            } catch(error) {
+                                // console.log(error)
+                            }
                             const indexStore = objectStore.index(indexName);
 
                             readDocs(data, database, collection, indexStore, isIndex, direction).then((results) => {
-                                db2.close()
+                                if (db2 && db2.close)
+                                    db2.close()
                                 resolve(results)
                             })
                         })
