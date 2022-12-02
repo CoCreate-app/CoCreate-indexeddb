@@ -710,8 +710,9 @@ function runDocs({action, data, objectStore, documents, filterDocs, database, co
                 
                 if (action == 'updateDocument' || action == 'deleteDocument') {
                     if (doc._id) {
-                        doc['organization_id'] = data.organization_id
-                        doc['modified'] = {on: data.timeStamp, by: data.user || data.clientId}
+                        if (data.organization_id)
+                            doc['organization_id'] = data.organization_id
+                        doc['modified'] = {on: data.timeStamp, by: data.user_id || data.clientId}
 
                         updateDoc(action, data, doc, objectStore, database, collection).then((doc) => {
                             doc.db = 'indexeddb'
@@ -735,8 +736,9 @@ function runDocs({action, data, objectStore, documents, filterDocs, database, co
                             doc['_id'] = ObjectId()
                         doc = dotNotationToObject(doc)
 
-                        doc['organization_id'] = data.organization_id
-                        doc['created'] = {on: data.timeStamp, by: data.user || data.clientId}
+                        if (data.organization_id)
+                            doc['organization_id'] = data.organization_id
+                        doc['created'] = {on: data.timeStamp, by: data.user_id || data.clientId}
                         request = objectStore.add(doc);
                     }
 
