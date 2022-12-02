@@ -1,3 +1,13 @@
+## [1.4.6](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.4.5...v1.4.6) (2022-12-02)
+
+
+### Bug Fixes
+
+* bump @cocreat/utils ([4b4801f](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/4b4801f86ee329182683e96a174eadb8411a64dd))
+* export default ([33e1721](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/33e17219877f692a71d8b8f876751642b157b7b0))
+* if condition for readDocument _id, if condition for count results to prevent error. sortType renamed to direction ([5b3d817](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/5b3d8170a06f001bcd71d00ca9d4284c4039ffaa))
+* if data.organization_id add to document ([55e7ad7](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/55e7ad70c64f0848f99343a73fff0db8376c7938))
+
 ## [1.4.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.4.4...v1.4.5) (2022-11-28)
 
 
