@@ -4,7 +4,7 @@
  *
  * SPDX-License-Identifier: MIT
  ********************************************************************************/
-import {dotNotationToObject, searchData, sortData, queryData} from '@cocreate/utils'
+import {ObjectId, dotNotationToObject, searchData, sortData, queryData} from '@cocreate/utils'
 
 function createDatabase(data){
     return Database('createDatabase', data)
@@ -991,12 +991,10 @@ async function readDocs(data, database, collection, objectStore, isIndex, direct
     });
 }
 
-async function generateDB(data) {
+function generateDB(data) {
 	const organization_id = data.organization_id;
 	const apiKey = data.apiKey;
-	
-	let user_id = ObjectId()
-	window.localStorage.setItem('user_id', user_id);
+	const user_id = data.user_id;
 
 	try {
 		// Create organization 
@@ -1006,11 +1004,11 @@ async function generateDB(data) {
 			document: {
 				_id: organization_id,
 				name: 'untitled',
-				organization_id,
-				apiKey
+				apiKey,
+                organization_id
 			}
 		}
-		await createDocument(organization);
+		createDocument(organization);
 
 		// Create apiKey permission
 		if (organization_id && apiKey) {
@@ -1019,7 +1017,6 @@ async function generateDB(data) {
 				collection: 'permissions',
 				document: {
 					_id: ObjectId(),
-					organization_id,
 					type: "apikey",
 					key: apiKey,
 					hosts: [
@@ -1047,11 +1044,12 @@ async function generateDB(data) {
 						],
 						"sendgrid": ["sendEmail"]
 					},
-					"admin": "true"
+					"admin": "true",
+                    organization_id,
 				}
 			}
 
-			await createDocument(permissions);
+			createDocument(permissions);
 		}
 
 		// Create user
@@ -1064,10 +1062,10 @@ async function generateDB(data) {
 					password: btoa('0000'),
 					connected_orgs: [organization_id],
 					current_org: organization_id,
-					organization_id: organization_id
+					organization_id
 				}
 			}
-			await createDocument(user);
+			createDocument(user);
 		}
 
 		// Create role permission
@@ -1077,7 +1075,6 @@ async function generateDB(data) {
 				collection: 'permissions',
 				document: {
 					_id: ObjectId(),
-					organization_id,
 					"type": "role",
 					"name": "admin",
 					"collections": {
@@ -1087,16 +1084,17 @@ async function generateDB(data) {
 						"*": ""
 					},
 					"admin": "true",
-					"hosts": ["*"]
+					"hosts": ["*"],
+                    organization_id,
 				}
 			};
 
-			await createDocument(role);
-			let role_id = role.data._id;
+			createDocument(role);
+			let role_id = role.document._id;
 			
 			// Create user permission
 			if (role_id) {
-				let data = {
+				let userPermission = {
                     database: organization_id,
 					collection: 'permissions',
 					document: {
@@ -1107,7 +1105,7 @@ async function generateDB(data) {
 						"roles": [role_id]
 					}
 				};
-				await createDocument(data);
+				createDocument(userPermission);
 			}
 		}
         return true			
@@ -1152,9 +1150,6 @@ function createData(data, array, type) {
 }
 
 
-const ObjectId = (rnd = r16 => Math.floor(r16).toString(16)) =>
-    rnd(Date.now()/1000) + ' '.repeat(16).replace(/./g, () => rnd(Math.random()*16));
-
 function init() {
     // Check for support.
     if (!('indexedDB' in window)) {
@@ -1166,6 +1161,7 @@ function init() {
 init();
 
 export default {
+    ObjectId,
     getDatabase,
     createDatabase,
     readDatabase,
@@ -1187,6 +1183,5 @@ export default {
     updateDocument, 
     deleteDocument, 
 
-    ObjectId,
     generateDB
 };
