@@ -40,8 +40,13 @@ const Database = (action, data) => {
 
         if (action == 'readDatabase') {
             indexedDB.databases().then((databases) => {
-                data.databases = databases
-                resolve(data)
+                for (let database of databases){
+                    let isFilter = queryData(database, data.filter.query)
+                    if (isFilter)
+                        databaseArray.push({database, db: 'indexeddb'})
+                }
+
+                resolve(createData(data, databaseArray, type))
             })
         } else {
             let databases
@@ -220,8 +225,8 @@ const Database = (action, data) => {
             }
         }
 
-    }, (err) => {
-        errorHandler(data, err)
+    }, (error) => {
+        errorHandler(data, error)
     });
 }
 
@@ -270,7 +275,9 @@ const collection = (action, data) => {
                         data[type] = []
                     
                     for (let collection of Array.from(objectStoreNames)){
-                        collectionArray.push({name: collection, db: 'indexeddb', database})
+                        let isFilter = queryData({name: collection}, data.filter.query)
+                        if (isFilter)
+                            collectionArray.push({name: collection, db: 'indexeddb', database})
                     }
 
                     databasesLength -= 1
@@ -340,8 +347,8 @@ const collection = (action, data) => {
                                     }
     
                                 }
-                            }, (err) => {
-                                errorHandler(data, err, database)
+                            }, (error) => {
+                                errorHandler(data, error, database)
                             }) 
                             
                         } else {
@@ -371,8 +378,8 @@ const collection = (action, data) => {
                 }
             };
         }
-    }, (err) => {
-        errorHandler(data, err)
+    }, (error) => {
+        errorHandler(data, error)
     });
 }
 
@@ -425,7 +432,9 @@ const index = (action, data) => {
     
                         if (action == 'readIndex') {
                             for (let index of indexNames) {
-                                indexArray.push({name: index, db: 'indexeddb', database, collection})
+                                let isFilter = queryData({name: index}, data.filter.query)
+								if (isFilter)
+									indexArray.push({name: index, db: 'indexeddb', database, collection})
                             }
                             collectionsLength -= 1
                             db.close()
@@ -514,8 +523,8 @@ const index = (action, data) => {
             }    
         }
 
-    }, (err) => {
-        errorHandler(data, err)
+    }, (error) => {
+        errorHandler(data, error)
     });
 }
 
@@ -777,8 +786,8 @@ function runDocs({action, data, objectStore, documents, filterDocs, database, co
         } else {
             resolve()
         }
-    }, (err) => {
-        errorHandler(data, {message: err, document: doc}, database, objectStore.name)
+    }, (error) => {
+        errorHandler(data, {message: error, document: doc}, database, objectStore.name)
     })
 }
 
@@ -880,9 +889,8 @@ const readDocuments = (data, database, collection) => {
                 let indexName;
                 if (data.filter && data.filter.sort && data.filter.sort[0] && data.filter.sort[0].name) {
                     indexName = data.filter.sort[0].name
-                    if (indexName.includes('-')) {
+                    if (indexName.includes('-'))
                         isIndex = false
-                    }
                     else
                         isIndex = true
                 }
@@ -908,7 +916,7 @@ const readDocuments = (data, database, collection) => {
                             }
                             const indexStore = objectStore.index(indexName);
 
-                            readDocs(data, database, collection, indexStore, isIndex, direction).then((results) => {
+                            readDocs(data, database, collection, indexStore, direction).then((results) => {
                                 if (db2 && db2.close)
                                     db2.close()
                                 resolve(results)
@@ -916,19 +924,19 @@ const readDocuments = (data, database, collection) => {
                         })
                     } else {
                         const indexStore = objectStore.index(indexName);
-                        readDocs(data, database, collection, indexStore, isIndex, direction).then((results) => {
+                        readDocs(data, database, collection, indexStore, direction).then((results) => {
                             db.close()
                             resolve(results)
                         })
                     }
                 } else {
-                    readDocs(data, database, collection, objectStore, isIndex).then((results) => {
+                    readDocs(data, database, collection, objectStore).then((results) => {
                         db.close()
                         resolve(results)
                     })      
                 }
-            } catch (err) {
-                errorHandler(data, err, database)
+            } catch (error) {
+                errorHandler(data, error, database)
                 db.close()
                 resolve([])
                 return 
@@ -943,7 +951,7 @@ const readDocuments = (data, database, collection) => {
     })
 }
 
-async function readDocs(data, database, collection, objectStore, isIndex, direction) {
+async function readDocs(data, database, collection, objectStore, direction) {
     return new Promise((resolve, reject) => {
                 
         let results = [], index = 0, limit
@@ -970,7 +978,7 @@ async function readDocs(data, database, collection, objectStore, isIndex, direct
                 }
                 if (isFilter !== false)
                     results.push(value)
-                if (isIndex && limit && limit == results.length) {
+                if (limit && limit == results.length) {
                     results = results.slice(index, limit)
                     resolve(results)
                 } else
