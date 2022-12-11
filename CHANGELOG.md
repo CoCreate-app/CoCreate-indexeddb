@@ -1,3 +1,15 @@
+# [1.5.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.4.16...v1.5.0) (2022-12-11)
+
+
+### Bug Fixes
+
+* bump dependencies ([1cb7795](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/1cb779552fb31c546c471f5c73d8e6babcff30db))
+
+
+### Features
+
+* query, search and sort databases, collections, and indexes ([fd3f248](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/fd3f2486239d002d313069cfc19c86df2f341b97))
+
 ## [1.4.16](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.4.15...v1.4.16) (2022-12-09)
 
 
