@@ -274,7 +274,7 @@ const collection = (action, data) => {
                     if (!data[type])
                         data[type] = []
                     
-                    for (let collection of Array.from(objectStoreNames)){
+                    for (let collection of objectStoreNames){
                         let isFilter = queryData({name: collection}, data.filter.query)
                         if (isFilter)
                             collectionArray.push({name: collection, db: 'indexeddb', database})
