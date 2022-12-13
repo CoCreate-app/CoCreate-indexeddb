@@ -1,3 +1,10 @@
+## [1.5.6](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.5...v1.5.6) (2022-12-13)
+
+
+### Bug Fixes
+
+* removed un used devDependencies ([a96a9f5](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/a96a9f57c4a096f8ddb828f32a6a83b4e98daf40))
+
 ## [1.5.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.4...v1.5.5) (2022-12-13)
 
 
