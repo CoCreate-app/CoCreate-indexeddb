@@ -1,6 +1,6 @@
 {
   "name": "@cocreate/indexeddb",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "description": "A simple indexeddb component in vanilla javascript. Easily configured using HTML5 data-attributes and/or JavaScript API.",
   "keywords": [
     "indexeddb",
@@ -20,7 +20,9 @@
     "html5-framework",
     "javascript-framework"
   ],
-  "publishConfig": { "access": "public" },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "start": "npx webpack --config webpack.config.js",
     "build": "NODE_ENV=production npx webpack --config webpack.config.js",
