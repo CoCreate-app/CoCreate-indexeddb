@@ -897,7 +897,7 @@ const readDocuments = (data, database, collection) => {
 
                 if (isIndex) {
                     let direction = data.filter.sort[0].direction
-                    if (direction == -1)
+                    if (direction == 'desc')
                         direction = 'prev'
                     else
                         direction = 'next'
