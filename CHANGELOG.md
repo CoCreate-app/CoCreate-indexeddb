@@ -1,3 +1,10 @@
+## [1.5.7](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.6...v1.5.7) (2022-12-15)
+
+
+### Bug Fixes
+
+* add missing dev dependency style-loader ([40fa8bb](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/40fa8bb9196f82b7195a7b618baebf6bf932691c))
+
 ## [1.5.6](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.5...v1.5.6) (2022-12-13)
 
 
