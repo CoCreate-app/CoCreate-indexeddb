@@ -1052,7 +1052,7 @@ function generateDB(data) {
 						],
 						"sendgrid": ["sendEmail"]
 					},
-					"admin": "true",
+					"admin": "false",
                     organization_id,
 				}
 			}
