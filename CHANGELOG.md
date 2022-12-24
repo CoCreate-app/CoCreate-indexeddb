@@ -1,3 +1,10 @@
+## [1.5.13](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.12...v1.5.13) (2022-12-24)
+
+
+### Bug Fixes
+
+* createDb apiKey admin set to false ([d3e8885](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/d3e8885e690b3c205ac206a36b7dfddb144e772e))
+
 ## [1.5.12](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.11...v1.5.12) (2022-12-23)
 
 
