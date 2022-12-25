@@ -1042,18 +1042,15 @@ function generateDB(data) {
 							}
 						}
 					},
-					"modules": {
-						"actions": [
-							"signIn",
-                            "signUp",
-							"userCurrentOrg",
-							"createOrg",
-							"runIndustry"
-						],
-						"sendgrid": ["sendEmail"]
-					},
-					"admin": "false",
-                    organization_id,
+                    actions: {
+                        "signIn": "",
+                        "signUp": "",
+                        "createOrg": "",
+                        "runIndustry": "",
+                        "sendgrid": ["sendEmail"]
+                    },
+                    "admin": "false",
+                    organization_id
 				}
 			}
 
