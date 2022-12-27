@@ -1,3 +1,11 @@
+## [1.5.16](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.15...v1.5.16) (2022-12-27)
+
+
+### Bug Fixes
+
+* bump dependencies ([ddfbb93](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/ddfbb9315125d19e4f02d48577b29aaf45df1994))
+* removed !data.document condition that resulted in preventing readDocuments using filter ([8a2b9a9](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/8a2b9a9243e3f25328b1eb68d4caa53d5b0327ee))
+
 ## [1.5.15](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.14...v1.5.15) (2022-12-25)
 
 
