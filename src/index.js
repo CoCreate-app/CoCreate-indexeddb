@@ -624,7 +624,7 @@ const document = (action, data) => {
                         })
 
                     } else { 
-                        if (data.filter || action == 'readDocument' && !data.document) {
+                        if (data.filter || action == 'readDocument') {
                             db.close()
                             readDocuments(data, database, collection).then((filterDocs) => {
                                 getDatabase({database}).then((db) => {
