@@ -414,13 +414,13 @@ const index = (action, data) => {
         let databases = data.database;  
         if (!Array.isArray(databases))
             databases = [databases]
+            
+        let collections = data.collection;
+        if (!Array.isArray(collections))
+            collections = [collections]
 
         let databasesLength = databases.length
         for (let database of databases) {
-            let collections = data.collection;
-            if (!Array.isArray(collections))
-                collections = [collections]
-
             let collectionsLength = collections.length
             for (let collection of collections) {
                 getDatabase({database}).then((db) => {
@@ -552,6 +552,9 @@ const document = (action, data) => {
         
         if (data.request)
             data[type] = data.request
+        
+        if (data.document && !Array.isArray(data.document))
+            data.document = [data.document]
 
         if (!data['timeStamp'])
             data['timeStamp'] = new Date().toISOString()
@@ -560,13 +563,13 @@ const document = (action, data) => {
         if (!Array.isArray(databases))
             databases = [databases]
 
+        let collections = data.collection;
+        if (!Array.isArray(collections))
+            collections = [collections]
+
         let databasesLength = databases.length
         for (let database of databases) {
             getDatabase({database}).then((db) => {
-                let collections = data.collection;
-                if (!Array.isArray(collections))
-                    collections = [collections]
-
                 let collectionsLength = collections.length
                 for (let collection of collections) {
                     let collectionExist = db.objectStoreNames.contains(collection)
@@ -624,7 +627,7 @@ const document = (action, data) => {
                         })
 
                     } else { 
-                        if (data.filter || action == 'readDocument') {
+                        if (data.filter || action == 'readDocument' && !data.document.length) {
                             db.close()
                             readDocuments(data, database, collection).then((filterDocs) => {
                                 getDatabase({database}).then((db) => {
@@ -681,10 +684,10 @@ function runDocs({action, data, objectStore, documents, filterDocs, database, co
         
         if (Array.isArray(data[type]))
             docs.push(...data[type]);
-        else if (data[type] != undefined && action == 'createDocument')
-            docs.push(data[type])
-        else if (data[type] != undefined)
-            docs.push({...data[type]})
+        // else if (data[type] != undefined && action == 'createDocument')
+        //     docs.push(data[type])
+        // else if (data[type] != undefined)
+        //     docs.push({...data[type]})
         
 
         if (filterDocs && filterDocs.length) {
