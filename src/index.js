@@ -558,7 +558,7 @@ const document = (action, data) => {
 
         if (!data['timeStamp'])
             data['timeStamp'] = new Date().toISOString()
-        
+
         let databases = data.database;  
         if (!Array.isArray(databases))
             databases = [databases]
@@ -576,7 +576,7 @@ const document = (action, data) => {
                     if (!collectionExist) { 
                         db.close()
                         getDatabase({database, collection}).then((db) => {                            
-                            if (data.filter || action == 'readDocument') {
+                            if (data.filter || action == 'readDocument' && (!data.document || !data.document.length)) {
                                 db.close()
                                 readDocuments(data, database, collection).then((filterDocs) => {
                                     getDatabase({database}).then((db) => {
@@ -627,7 +627,8 @@ const document = (action, data) => {
                         })
 
                     } else { 
-                        if (data.filter || action == 'readDocument' && !data.document.length) {
+                        if (data.filter || action == 'readDocument' && (!data.document || !data.document.length)) {
+                
                             db.close()
                             readDocuments(data, database, collection).then((filterDocs) => {
                                 getDatabase({database}).then((db) => {
