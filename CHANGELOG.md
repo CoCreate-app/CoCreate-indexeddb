@@ -1,3 +1,12 @@
+## [1.5.19](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.18...v1.5.19) (2022-12-29)
+
+
+### Bug Fixes
+
+* bump dependencies ([ab43233](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/ab43233da8b839b163a5b739e4dfba9ca9063c58))
+* convert doument to array ([d936e71](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/d936e71c2978ffab5c4e3c87474443c14396683a))
+* readDoument cases ([3579985](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/357998527832df23cc9ca9c9dcad7c2f7ecbbe53))
+
 ## [1.5.18](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.17...v1.5.18) (2022-12-27)
 
 
