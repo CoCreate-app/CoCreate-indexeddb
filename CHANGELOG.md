@@ -1,3 +1,10 @@
+## [1.5.21](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.20...v1.5.21) (2022-12-30)
+
+
+### Bug Fixes
+
+* update config sources to use template  braces with entry on src ([1ec17d0](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/1ec17d0b8baf492ebbf1bcc8ca929022da1fadc0))
+
 ## [1.5.20](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.19...v1.5.20) (2022-12-29)
 
 
