@@ -1,3 +1,10 @@
+## [1.5.24](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.23...v1.5.24) (2023-01-01)
+
+
+### Bug Fixes
+
+* docs sanbox overflow ([f94ceff](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/f94ceff9f7200c3c71988e03d974d693f048e8d4))
+
 ## [1.5.23](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.22...v1.5.23) (2022-12-31)
 
 
