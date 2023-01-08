@@ -893,10 +893,10 @@ const readDocuments = (data, database, collection) => {
                 let indexName;
                 if (data.filter && data.filter.sort && data.filter.sort[0] && data.filter.sort[0].name) {
                     indexName = data.filter.sort[0].name
-                    if (indexName.includes('-'))
-                        isIndex = false
-                    else
-                        isIndex = true
+                    // if (indexName.includes('-'))
+                    //     isIndex = false
+                    // else
+                        // isIndex = true
                 }
 
                 if (isIndex) {
