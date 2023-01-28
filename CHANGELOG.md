@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.34...v1.6.0) (2023-01-28)
+
+
+### Features
+
+* indexeddb status ([7ba7ef5](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/7ba7ef589509f8e9cbc18aeac511ee6d62040468))
+
 ## [1.5.34](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.33...v1.5.34) (2023-01-27)
 
 
