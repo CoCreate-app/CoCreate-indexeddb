@@ -5,6 +5,7 @@
  * SPDX-License-Identifier: MIT
  ********************************************************************************/
 import {ObjectId, dotNotationToObject, searchData, sortData, queryData} from '@cocreate/utils'
+const status = true;
 
 function createDatabase(data){
     return Database('createDatabase', data)
@@ -1163,13 +1164,38 @@ function init() {
     // Check for support.
     if (!('indexedDB' in window)) {
         console.log("This browser doesn't support IndexedDB.");
+        setStatus(false);
         return;
-    } else { }
- }
+    } else { 
+        try {
+            let openRequest = indexedDB.open('database');
+            openRequest.onsuccess = function() {
+                let db = openRequest.result;
+                db.close()
+            }
+            if (window.CoCreateConfig)
+                if (window.CoCreateConfig.indexeddb !== false)
+                    setStatus(true)
+        } catch(e) {
+            setStatus(false);
+        }
+    }
+}
+
+function setStatus(value) {
+    if (window.CoCreateConfig)
+        window.CoCreateConfig.indexeddb = value;
+    else
+        window.CoCreateConfig = {indexeddb: value};
+
+    status = value;
+}
+
 
 init();
 
 export default {
+    status,
     ObjectId,
     getDatabase,
     createDatabase,
