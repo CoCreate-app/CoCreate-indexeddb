@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.6.0...v1.6.1) (2023-01-28)
+
+
+### Bug Fixes
+
+* const status to let status ([a7eb36c](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/a7eb36cf2dede83194d86f4e0e49d23367b07922))
+
 # [1.6.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.5.34...v1.6.0) (2023-01-28)
 
 
