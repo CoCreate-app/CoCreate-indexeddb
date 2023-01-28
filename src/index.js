@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: MIT
  ********************************************************************************/
 import {ObjectId, dotNotationToObject, searchData, sortData, queryData} from '@cocreate/utils'
-const status = true;
+let status = true;
 
 function createDatabase(data){
     return Database('createDatabase', data)
