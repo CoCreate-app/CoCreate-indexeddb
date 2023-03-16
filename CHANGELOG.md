@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.6.7...v1.7.0) (2023-03-16)
+
+
+### Features
+
+* replaced get-value and set-value with a super charged version of CoCreate-events ([3f6de0d](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/3f6de0db92c4ad527dc52d2a5ac850be2e7c63be))
+
 ## [1.6.7](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.6.6...v1.6.7) (2023-02-01)
 
 
