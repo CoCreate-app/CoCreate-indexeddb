@@ -11,7 +11,7 @@ function createDatabase(data){
     return Database('createDatabase', data)
 }
 
-const readDatabase = () => {
+const readDatabase = (data) => {
     return Database('readDatabase', data)
 }
 
@@ -32,7 +32,7 @@ const Database = (action, data) => {
     return new Promise((resolve, reject) => {
         let type = 'database'
         let databaseArray = [];
-
+        if (!data) data = {}
         if (data.request)
             data[type] = data.request
 
@@ -41,10 +41,13 @@ const Database = (action, data) => {
 
         if (action == 'readDatabase') {
             indexedDB.databases().then((databases) => {
-                for (let database of databases){
-                    let isFilter = queryData(database, data.filter.query)
-                    if (isFilter)
-                        databaseArray.push({database, db: 'indexeddb'})
+                for (let database of databases) {
+                    if (data.filter && data.filter.query) {
+                        let isFilter = queryData(database, data.filter.query)
+                        if (isFilter)
+                            databaseArray.push({ database, db: 'indexeddb' })
+                    } else
+                        databaseArray.push({ database, db: 'indexeddb' })
                 }
 
                 resolve(createData(data, databaseArray, type))
