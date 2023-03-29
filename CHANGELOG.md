@@ -1,3 +1,10 @@
+## [1.7.3](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.2...v1.7.3) (2023-03-29)
+
+
+### Bug Fixes
+
+* readDatabase - data not defined add empty object ([b2a2c69](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/b2a2c6945f9ecca466681b75829f15c1fb822714))
+
 ## [1.7.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.1...v1.7.2) (2023-03-16)
 
 
