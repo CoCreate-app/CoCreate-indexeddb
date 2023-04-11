@@ -1172,9 +1172,8 @@ function init() {
     } else { 
         try {
             indexedDB.databases()
-            if (window.CoCreateConfig)
-                if (window.CoCreateConfig.indexeddb !== false)
-                    setStatus(true)
+            if (window.CoCreateConfig && window.CoCreateConfig.indexeddb !== false)
+                setStatus(true)
         } catch(e) {
             setStatus(false);
         }
