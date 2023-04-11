@@ -1020,7 +1020,6 @@ function generateDB(data) {
 			document: {
 				_id: organization_id,
 				name: 'untitled',
-				apiKey,
                 organization_id
 			}
 		}
@@ -1057,7 +1056,8 @@ function generateDB(data) {
                         "runIndustry": "",
                         "sendgrid": ["sendEmail"]
                     },
-                    "admin": "false",
+                    admin: "false",
+                    primary: true,
                     organization_id
 				}
 			}
