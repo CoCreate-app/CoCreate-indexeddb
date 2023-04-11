@@ -1,3 +1,10 @@
+## [1.7.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.4...v1.7.5) (2023-04-11)
+
+
+### Bug Fixes
+
+* renamed domains to hosts ([d1e7bc1](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/d1e7bc1b2fd799788bdb87a21f6d52ff529022fd))
+
 ## [1.7.4](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.3...v1.7.4) (2023-03-30)
 
 
