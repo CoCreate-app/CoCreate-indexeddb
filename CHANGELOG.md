@@ -1,3 +1,10 @@
+## [1.7.6](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.5...v1.7.6) (2023-04-11)
+
+
+### Bug Fixes
+
+* createDb ([77778af](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/77778afee56354fd0aac0ff7e9491af21332d681))
+
 ## [1.7.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.4...v1.7.5) (2023-04-11)
 
 
