@@ -1171,11 +1171,7 @@ function init() {
         return;
     } else { 
         try {
-            let openRequest = indexedDB.open('database');
-            openRequest.onsuccess = function() {
-                let db = openRequest.result;
-                db.close()
-            }
+            indexedDB.databases()
             if (window.CoCreateConfig)
                 if (window.CoCreateConfig.indexeddb !== false)
                     setStatus(true)
