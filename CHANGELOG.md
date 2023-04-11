@@ -1,3 +1,10 @@
+## [1.7.7](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.6...v1.7.7) (2023-04-11)
+
+
+### Bug Fixes
+
+* test indexeddb using databases() instead of open(). open caused a db to be created ([7112717](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/711271719e108484e7752a66ad2dcb9b5184c197))
+
 ## [1.7.6](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.5...v1.7.6) (2023-04-11)
 
 
