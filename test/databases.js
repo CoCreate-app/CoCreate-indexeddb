@@ -5,7 +5,6 @@ async function testDatabases() {
     } else {
         let createDatabase = await CoCreate.indexeddb.createDatabase({
             database: 'testDB',
-            
         })
         console.log('createDatabase', createDatabase)
 
@@ -14,15 +13,14 @@ async function testDatabases() {
         })
         console.log('readDatabase', readDatabase)
 
-        // let updateDatabase = await CoCreate.indexeddb.updateDatabase({
-        //     database: 'testDB',
-        //     updateDatabase: {testDatabase: 'testDatabase1'}
-        // })
-        // console.log('updateDatabase', updateDatabase)
+        let updateDatabase = await CoCreate.indexeddb.updateDatabase({
+            database: {testDB: 'testDatabase1'}
+        })
+        console.log('updateDatabase', updateDatabase)
 
 
         let deleteDatabase = await CoCreate.indexeddb.deleteDatabase({
-            database: 'testDB',
+            database: ['testDB', 'testDB1', 'testDB2'],
         })
         console.log('deleteDatabase', deleteDatabase)
 

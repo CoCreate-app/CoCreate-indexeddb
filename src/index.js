@@ -55,7 +55,7 @@ const Database = (action, data) => {
         } else {
             let databases
             if (action == 'updateDatabase')
-                databases = Object.entries(data.database)
+                databases = Object.keys(data.database).map((key) => [key, data.database[key]])
             else
                 databases = data.database;            
             
@@ -279,9 +279,12 @@ const collection = (action, data) => {
                         data[type] = []
                     
                     for (let collection of objectStoreNames){
-                        let isFilter = queryData({name: collection}, data.filter.query)
-                        if (isFilter)
-                            collectionArray.push({name: collection, db: 'indexeddb', database})
+                        if (data.filter && data.filter.query) {
+                            let isFilter = queryData({name: collection}, data.filter.query)
+                            if (isFilter)
+                                collectionArray.push({name: collection, db: 'indexeddb', database})
+                        } else
+                            collectionArray.push({ database, db: 'indexeddb' })
                     }
 
                     databasesLength -= 1
@@ -292,7 +295,7 @@ const collection = (action, data) => {
                 } else {
                     let collections
                     if (action == 'updateCollection')
-                        collections = Object.entries(data[type])
+                        collections = Object.keys(data[type]).map((key) => [key, data[type][key]])
                     else
                         collections = data[type];
                     if (!Array.isArray(collections))
@@ -436,10 +439,12 @@ const index = (action, data) => {
     
                         if (action == 'readIndex') {
                             for (let index of indexNames) {
-                                let isFilter = queryData({name: index}, data.filter.query)
-								if (isFilter)
-									indexArray.push({name: index, db: 'indexeddb', database, collection})
-                            }
+                                if (data.filter && data.filter.query) {
+                                    let isFilter = queryData({name: index}, data.filter.query)
+                                    if (isFilter)
+                                        indexArray.push({name: index, db: 'indexeddb', database, collection})
+                                } else
+                                    indexArray.push({ database, db: 'indexeddb' })                            }
                             collectionsLength -= 1
                             db.close()
 
@@ -453,7 +458,7 @@ const index = (action, data) => {
                             db.close()
                             let indexes
                             if (action == 'updateIndex')
-                                indexes = Object.entries(data[type])
+                                indexes = Object.keys(data[type]).map((key) => [key, data[type][key]])
                             else
                                 indexes = data[type];
                             if (!Array.isArray(indexes))
@@ -818,10 +823,10 @@ function updateDoc(action, data, doc, objectStore, database, collection) {
                             doc = dotNotationToObject(doc, get.result)
 
                             if (data.updateName){
-                                for (let [key, value] of Object.entries(data.updateName)){
+                                for (let key of Object.keys(data.updateName)){
                                     let val = doc[key]
                                     delete doc[key]
-                                    doc[value] = val
+                                    doc[data.updateName[key]] = val
                                 }
                             }  
         
