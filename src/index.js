@@ -759,13 +759,15 @@ function runDocs({action, data, objectStore, documents, filterDocs, database, co
                         request = objectStore.add(doc);
                     }
 
-                    if (action == 'readDocument' && doc._id) {
-                        request = objectStore.get(doc._id);
-                    } else {
-                        docsLength -= 1
-                        errorHandler(data, {message: 'requires _id', document: doc}, database, objectStore.name)
-                        if (!docsLength) {                        
-                            resolve()
+                    if (action == 'readDocument') {
+                        if (action == 'readDocument' && doc._id)
+                            request = objectStore.get(doc._id);
+                        else {
+                            docsLength -= 1
+                            errorHandler(data, {message: 'requires _id', document: doc}, database, objectStore.name)
+                            if (!docsLength) {                        
+                                resolve()
+                            }
                         }
                     }
                     
