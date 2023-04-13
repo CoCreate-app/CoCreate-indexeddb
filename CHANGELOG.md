@@ -1,3 +1,10 @@
+## [1.7.10](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.9...v1.7.10) (2023-04-13)
+
+
+### Bug Fixes
+
+* readDocumenterror handeling ([5e12fc2](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/5e12fc22097b083128bd87f3f7a0e4e0f5a486af))
+
 ## [1.7.9](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.8...v1.7.9) (2023-04-11)
 
 
