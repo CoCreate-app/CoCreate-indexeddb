@@ -1,3 +1,10 @@
+## [1.7.11](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.10...v1.7.11) (2023-04-13)
+
+
+### Bug Fixes
+
+* replaced object.entries with Object.keys ([385f513](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/385f513429878c9b5e33ef8a91d5b80af43ade32))
+
 ## [1.7.10](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.9...v1.7.10) (2023-04-13)
 
 
