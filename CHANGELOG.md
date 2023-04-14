@@ -1,3 +1,10 @@
+## [1.7.12](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.11...v1.7.12) (2023-04-14)
+
+
+### Bug Fixes
+
+* pushing item after is filter ([ad52003](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/ad520037d5c175372e4e6a49f8a16c88adeda232))
+
 ## [1.7.11](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.10...v1.7.11) (2023-04-13)
 
 
