@@ -284,7 +284,7 @@ const collection = (action, data) => {
                             if (isFilter)
                                 collectionArray.push({name: collection, db: 'indexeddb', database})
                         } else
-                            collectionArray.push({ database, db: 'indexeddb' })
+                            collectionArray.push({name: collection, db: 'indexeddb', database})
                     }
 
                     databasesLength -= 1
@@ -444,7 +444,7 @@ const index = (action, data) => {
                                     if (isFilter)
                                         indexArray.push({name: index, db: 'indexeddb', database, collection})
                                 } else
-                                    indexArray.push({ database, db: 'indexeddb' })                            }
+                                    indexArray.push({name: index, db: 'indexeddb', database, collection})                            }
                             collectionsLength -= 1
                             db.close()
 
