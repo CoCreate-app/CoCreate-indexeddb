@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.8.0...v1.8.1) (2023-04-24)
+
+
+### Bug Fixes
+
+* removed uglifyjs-webpack-plugin ([ac21808](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/ac21808f0c85dd6c678d980a8189cac2ed07354e))
+
 # [1.8.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.12...v1.8.0) (2023-04-24)
 
 
