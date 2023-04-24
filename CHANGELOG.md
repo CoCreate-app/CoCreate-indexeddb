@@ -1,3 +1,11 @@
+## [1.8.3](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.8.2...v1.8.3) (2023-04-24)
+
+
+### Bug Fixes
+
+* updated worrkflows to v3 and node version 16 ([c652e25](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/c652e2519192b97f1ed899911a2b67f7dd2510df))
+* workflow node version updated  16 ([9253a30](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/9253a30e2777e93654b630b0c64bb58fb861f683))
+
 ## [1.8.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.8.1...v1.8.2) (2023-04-24)
 
 
