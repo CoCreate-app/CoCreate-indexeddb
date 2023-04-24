@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.12...v1.8.0) (2023-04-24)
+
+
+### Features
+
+* added pwa manifest ([01154f7](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/01154f70e8ea67e8c4b6dec4b3809153b3612c5e))
+
 ## [1.7.12](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.7.11...v1.7.12) (2023-04-14)
 
 
