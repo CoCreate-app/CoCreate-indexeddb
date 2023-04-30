@@ -1,3 +1,12 @@
+## [1.8.4](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.8.3...v1.8.4) (2023-04-30)
+
+
+### Bug Fixes
+
+* fullscreen target updated to fullscreen fullscreen-target ([8c781d2](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/8c781d2d068d0c28caef44901faad090eb3ce9d9))
+* package-lock.json and pnpm-lock.yaml added to .gitignore ([3f6aeed](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/3f6aeed64273643b1db55c309ceb354f9da60c42))
+* removed toogle fullscreen icons. now using css content ([5d84732](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/5d8473276edc772493e3cdb9d345eb4bb4778e7c))
+
 ## [1.8.3](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.8.2...v1.8.3) (2023-04-24)
 
 
