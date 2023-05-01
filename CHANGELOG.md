@@ -1,3 +1,10 @@
+## [1.8.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.8.4...v1.8.5) (2023-05-01)
+
+
+### Bug Fixes
+
+* replace fontawesome with svg ([ed15fe9](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/ed15fe9cf5bdff732117f8a5178c4d0a280eea0c))
+
 ## [1.8.4](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.8.3...v1.8.4) (2023-04-30)
 
 
