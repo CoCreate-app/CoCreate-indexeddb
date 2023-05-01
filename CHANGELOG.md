@@ -1,3 +1,10 @@
+## [1.8.6](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.8.5...v1.8.6) (2023-05-01)
+
+
+### Bug Fixes
+
+* update manifest.json to manifest.webmanifest ([18973cc](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/18973cc3451e829bcb4748ff91f5342f6733c0a2))
+
 ## [1.8.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.8.4...v1.8.5) (2023-05-01)
 
 
