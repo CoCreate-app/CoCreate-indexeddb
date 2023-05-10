@@ -1,3 +1,11 @@
+## [1.9.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.9.1...v1.9.2) (2023-05-10)
+
+
+### Bug Fixes
+
+* apikey renamed to key ([67e767f](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/67e767ffd5b91e07d233d2e9f78cc7ee12052589))
+* apikey renamed to key ([cb135a8](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/cb135a8742e6e4a92a15c8d10404e39d47995cf1))
+
 ## [1.9.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.9.0...v1.9.1) (2023-05-10)
 
 
