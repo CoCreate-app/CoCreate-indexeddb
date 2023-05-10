@@ -1016,10 +1016,14 @@ async function readDocs(data, database, collection, objectStore, direction) {
     });
 }
 
-function generateDB(organization = {document: {}}, user = {document: {}}) {
-    const organization_id = organization._id || ObjectId();
-    const primaryKey = organization.key || uuid.generate();
-    const user_id = user._id || ObjectId();
+async function generateDB(organization = {document: {}}, user = {document: {}}) {
+    const organization_id = organization.document._id || ObjectId();
+    const primaryKey = organization.document.key || uuid.generate();
+    const user_id = user.document._id || ObjectId();
+
+    let apiKey = await readDocument({database: organization_id, collection: 'keys', organization_id})
+    if (apiKey && apiKey.document && apiKey.document[0])
+        return
 
     try {
         // Create organization 
