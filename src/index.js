@@ -1041,7 +1041,7 @@ async function generateDB(organization = {document: {}}, user = {document: {}}) 
             collection: 'keys',
             document: {
                 _id: ObjectId(),
-                type: "apikey",
+                type: "key",
                 key: primaryKey,
                 hosts: [
                     "*"
