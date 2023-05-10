@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.8.7...v1.9.0) (2023-05-10)
+
+
+### Features
+
+* generateDB, added @cocreate/uuid ([28be996](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/28be9960f64cac3fc72afcf2b8025431be9e8640))
+
 ## [1.8.7](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.8.6...v1.8.7) (2023-05-06)
 
 
