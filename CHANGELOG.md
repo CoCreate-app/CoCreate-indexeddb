@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.9.0...v1.9.1) (2023-05-10)
+
+
+### Bug Fixes
+
+* duplicate keys ([e87668f](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/e87668f17412e08a1497a53acbf7ba8592b53756))
+
 # [1.9.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.8.7...v1.9.0) (2023-05-10)
 
 
