@@ -5,6 +5,8 @@
  * SPDX-License-Identifier: MIT
  ********************************************************************************/
 import {ObjectId, dotNotationToObject, searchData, sortData, queryData} from '@cocreate/utils'
+import uuid from '@cocreate/uuid'
+
 let status = true;
 
 function createDatabase(data){
@@ -1014,125 +1016,110 @@ async function readDocs(data, database, collection, objectStore, direction) {
     });
 }
 
-function generateDB(data) {
-	const organization_id = data.organization_id;
-	const apiKey = data.apiKey;
-	const user_id = data.user_id;
+function generateDB(organization = {document: {}}, user = {document: {}}) {
+    const organization_id = organization._id || ObjectId();
+    const primaryKey = organization.key || uuid.generate();
+    const user_id = user._id || ObjectId();
 
-	try {
-		// Create organization 
-		let organization = {
+    try {
+        // Create organization 
+        organization.database = organization_id
+        organization.collection = 'organizations'
+        organization.document._id = organization_id
+        organization.document.key = primaryKey
+        organization.document.name = organization.document.name || 'untitiled',
+        organization.organization_id = organization_id
+        createDocument(organization);
+
+        // Create primary key
+        let key = {
             database: organization_id,
-			collection: 'organizatons',
-			document: {
-				_id: organization_id,
-				name: 'untitled',
-                organization_id
-			}
-		}
-		createDocument(organization);
+            collection: 'keys',
+            document: {
+                _id: ObjectId(),
+                type: "apikey",
+                key: primaryKey,
+                hosts: [
+                    "*"
+                ],
+                collections: {
+                    "organizations": ["read"],
+                    "files": ["read"]
+                },
+                documents: {
+                    "someid": {
+                        "permissions": [""],
+                        "fieldNames": {
+                            "name": ["read"]
+                        }
+                    }
+                },
+                actions: {
+                    "signIn": "",
+                    "signUp": "",
+                    "createOrg": "",
+                    "runIndustry": "",
+                    "sendgrid": ["sendEmail"]
+                },
+                admin: "false",
+                primary: true,
+            },
+            organization_id
+        }
+        createDocument(key);
 
-		// Create apiKey permission
-		if (organization_id && apiKey) {
-			let permissions = {	
-                database: organization_id,
-				collection: 'permissions',
-				document: {
-					_id: ObjectId(),
-					type: "apikey",
-					key: apiKey,
-					hosts: [
-						"*"
-					],
-					collections: {
-						"organizations": ["read"],
-						"files": ["read"]
-					},
-					documents: {
-						"someid": {
-							"permissions": [""],
-							"fieldNames": {
-								"name": ["read"]
-							}
-						}
-					},
-                    actions: {
-                        "signIn": "",
-                        "signUp": "",
-                        "createOrg": "",
-                        "runIndustry": "",
-                        "sendgrid": ["sendEmail"]
-                    },
-                    admin: "false",
-                    primary: true,
-                    organization_id
-				}
-			}
+        // Create user
+        user.database = organization_id
+        user.collection = 'users'
+        user.document._id = user_id
+        user.document.name = user.document.name || 'untitiled',
+        user.document.password = user.document.password || btoa('0000'),
+        user.document.connected_orgs = [organization_id],
+        user.document.current_org = organization_id,
+        user.organization_id = organization_id
+        createDocument(user);
 
-			createDocument(permissions);
-		}
+        // Create role permission
+        let role_id = ObjectId();
+        let role = {
+            database: organization_id,
+            collection: 'keys',
+            document: {
+                _id: role_id,
+                "type": "role",
+                "name": "admin",
+                "collections": {
+                    "*": ["*"]
+                },
+                "modules": {
+                    "*": ""
+                },
+                "admin": "true",
+                "hosts": ["*"],
+            },
+            organization_id
+        };
+        createDocument(role);	
 
-		// Create user
-		if (organization_id) {
-			let user = {
-                database: organization_id,
-				collection: 'users',
-				document: {
-					_id: user_id,
-					password: btoa('0000'),
-					connected_orgs: [organization_id],
-					current_org: organization_id,
-					organization_id
-				}
-			}
-			createDocument(user);
-		}
+        // Create user permission
+        let userKey = {
+            database: organization_id,
+            collection: 'keys',
+            document: {
+                _id: ObjectId(),
+                "type": "user_id",
+                "key": user_id,
+                "roles": [role_id]
+            },
+            organization_id
+        };
+        createDocument(userKey);
 
-		// Create role permission
-		if (user_id) {
-			let role = {
-                database: organization_id,
-				collection: 'permissions',
-				document: {
-					_id: ObjectId(),
-					"type": "role",
-					"name": "admin",
-					"collections": {
-						"*": ["*"]
-					},
-					"modules": {
-						"*": ""
-					},
-					"admin": "true",
-					"hosts": ["*"],
-                    organization_id,
-				}
-			};
-
-			createDocument(role);
-			let role_id = role.document._id;
-			
-			// Create user permission
-			if (role_id) {
-				let userPermission = {
-                    database: organization_id,
-					collection: 'permissions',
-					document: {
-						_id: ObjectId(),
-						organization_id,
-						"type": "user_id",
-						"key": user_id,
-						"roles": [role_id]
-					}
-				};
-				createDocument(userPermission);
-			}
-		}
-        return true			
-		
-	} catch (error) {
-        errorHandler(data, error)
-	}
+        return [organization, key, user, role, userKey]	
+        
+    } catch (error) {
+        return false
+    }
 }
 
 function errorHandler(data, error, database, collection){
