@@ -85,9 +85,9 @@ const Database = (action, data) => {
     
                 openRequest.onsuccess = function() {
                     let db = openRequest.result;
-                    let dbs = [] // ToDo: return an array of dbinstance??
+                    let dbs = [] // TODO: return an array of dbinstance??
                     if (action == 'updateDatabase') {
-                         // ToDo: open a cursor at database collection and save each collection and document at value
+                         // TODO: open a cursor at database collection and save each collection and document at value
 
                         let objectStoreNames = Array.from(db.objectStoreNames)
                         for (let collection of objectStoreNames) {
@@ -727,7 +727,7 @@ function runDocs({action, data, objectStore, documents, filterDocs, database, co
        
         if (docsLength > 0) {
             for (let doc of docs) {
-                // ToDo deDuplcate document_id per collection
+                // TODO deDuplcate document_id per collection
                 delete doc.db
                 delete doc.database
                 delete doc.collection
@@ -866,7 +866,7 @@ function updateDoc(action, data, doc, objectStore, database, collection) {
                         }
     
                     } else {
-                        // ToDo: handle if _id not found upsert
+                        // TODO: handle if _id not found upsert
                         errorHandler(data, 'doc in db is newer', database, collection, doc)
                         resolve(doc)
                     }
