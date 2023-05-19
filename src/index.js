@@ -1021,7 +1021,7 @@ async function readDocs(data, database, collection, objectStore, direction) {
 
 async function generateDB(organization = { document: {} }, user = { document: {} }) {
     const organization_id = organization.document._id || ObjectId();
-    const primaryKey = organization.document.key || uuid.generate();
+    const defaultKey = organization.document.key || uuid.generate();
     const user_id = user.document._id || ObjectId();
 
     let apiKey = await readDocument({ database: organization_id, collection: 'keys', organization_id })
@@ -1033,7 +1033,7 @@ async function generateDB(organization = { document: {} }, user = { document: {}
         organization.database = organization_id
         organization.collection = 'organizations'
         organization.document._id = organization_id
-        organization.document.key = primaryKey
+        organization.document.key = defaultKey
         organization.document.name = organization.document.name || 'untitiled',
             organization.organization_id = organization_id
         createDocument(organization);
@@ -1045,7 +1045,7 @@ async function generateDB(organization = { document: {} }, user = { document: {}
             document: {
                 _id: ObjectId(),
                 type: "key",
-                key: primaryKey,
+                key: defaultKey,
                 hosts: [
                     "*"
                 ],
@@ -1069,7 +1069,7 @@ async function generateDB(organization = { document: {} }, user = { document: {}
                     "sendgrid": ["sendEmail"]
                 },
                 admin: "false",
-                primary: true,
+                default: true,
             },
             organization_id
         }
