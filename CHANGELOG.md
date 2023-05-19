@@ -1,3 +1,10 @@
+## [1.9.4](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.9.3...v1.9.4) (2023-05-19)
+
+
+### Bug Fixes
+
+* Refactor code to use a more descriptive variable name ([ac0883d](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/ac0883dfb73b2b58fc2d942d3eda8f374bc1d800))
+
 ## [1.9.3](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.9.2...v1.9.3) (2023-05-19)
 
 
