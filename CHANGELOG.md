@@ -1,3 +1,10 @@
+## [1.9.3](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.9.2...v1.9.3) (2023-05-19)
+
+
+### Bug Fixes
+
+* modules renamed to actions ([ec7dfd3](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/ec7dfd3401bd97c09f7a0d6779e3293d90f49998))
+
 ## [1.9.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.9.1...v1.9.2) (2023-05-10)
 
 
