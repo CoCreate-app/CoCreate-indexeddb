@@ -1034,8 +1034,8 @@ async function generateDB(organization = { document: {} }, user = { document: {}
         organization.collection = 'organizations'
         organization.document._id = organization_id
         organization.document.key = defaultKey
-        organization.document.name = organization.document.name || 'untitiled',
-            organization.organization_id = organization_id
+        organization.document.name = organization.document.name || 'untitiled'
+        organization.organization_id = organization_id
         createDocument(organization);
 
         // Create primary key
@@ -1049,18 +1049,6 @@ async function generateDB(organization = { document: {} }, user = { document: {}
                 hosts: [
                     "*"
                 ],
-                collections: {
-                    "organizations": ["read"],
-                    "files": ["read"]
-                },
-                documents: {
-                    "someid": {
-                        "permissions": [""],
-                        "fieldNames": {
-                            "name": ["read"]
-                        }
-                    }
-                },
                 actions: {
                     "signIn": "",
                     "signUp": "",
@@ -1068,8 +1056,7 @@ async function generateDB(organization = { document: {} }, user = { document: {}
                     "runIndustry": "",
                     "sendgrid": ["sendEmail"]
                 },
-                admin: "false",
-                default: true,
+                default: true
             },
             organization_id
         }
@@ -1079,11 +1066,10 @@ async function generateDB(organization = { document: {} }, user = { document: {}
         user.database = organization_id
         user.collection = 'users'
         user.document._id = user_id
-        user.document.name = user.document.name || 'untitiled',
-            user.document.password = user.document.password || btoa('0000'),
-            user.document.connected_orgs = [organization_id],
-            user.document.current_org = organization_id,
-            user.organization_id = organization_id
+        user.document.firstname = user.document.firstname || 'untitiled'
+        user.document.lastname = user.document.lastname || 'untitiled'
+        user.organization_id = organization_id
+
         createDocument(user);
 
         // Create role permission
@@ -1095,14 +1081,8 @@ async function generateDB(organization = { document: {} }, user = { document: {}
                 _id: role_id,
                 "type": "role",
                 "name": "admin",
-                "collections": {
-                    "*": ["*"]
-                },
-                "actions": {
-                    "*": ""
-                },
-                "admin": "true",
                 "hosts": ["*"],
+                "admin": "true"
             },
             organization_id
         };
@@ -1114,9 +1094,11 @@ async function generateDB(organization = { document: {} }, user = { document: {}
             collection: 'keys',
             document: {
                 _id: ObjectId(),
-                "type": "user_id",
+                "type": "user",
                 "key": user_id,
-                "roles": [role_id]
+                "roles": [role_id],
+                "email": user.document.email,
+                "password": user.document.password || btoa('0000')
             },
             organization_id
         };
