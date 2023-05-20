@@ -1,3 +1,11 @@
+## [1.9.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.9.4...v1.9.5) (2023-05-20)
+
+
+### Bug Fixes
+
+* Refactor organization and user document creation ([1e55ba0](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/1e55ba0e8b8b5ff096cac98e64e4d13cac7572ee))
+* Updated dependencies to the lastest versions ([476552a](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/476552a85e3a0e16ac4da1129ae710093d0c01d6))
+
 ## [1.9.4](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.9.3...v1.9.4) (2023-05-19)
 
 
