@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.9.5...v1.10.0) (2023-05-21)
+
+
+### Features
+
+* Add function to generate organization, user, keys, and roles ([b8b665f](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/b8b665fc83d23d31072f0121a749e41d9f1866ed))
+
 ## [1.9.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.9.4...v1.9.5) (2023-05-20)
 
 
