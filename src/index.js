@@ -1033,12 +1033,20 @@ async function generateDB(organization = { document: {} }, user = { document: {}
         organization.database = organization_id
         organization.collection = 'organizations'
         organization.document._id = organization_id
-        organization.document.key = defaultKey
         organization.document.name = organization.document.name || 'untitiled'
         organization.organization_id = organization_id
         createDocument(organization);
 
-        // Create primary key
+        // Create user
+        user.database = organization_id
+        user.collection = 'users'
+        user.document._id = user_id
+        user.document.firstname = user.document.firstname || 'untitiled'
+        user.document.lastname = user.document.lastname || 'untitiled'
+        user.organization_id = organization_id
+        createDocument(user);
+
+        // Create default key
         let key = {
             database: organization_id,
             collection: 'keys',
@@ -1050,11 +1058,8 @@ async function generateDB(organization = { document: {} }, user = { document: {}
                     "*"
                 ],
                 actions: {
-                    "signIn": "",
-                    "signUp": "",
-                    "createOrg": "",
-                    "runIndustry": "",
-                    "sendgrid": ["sendEmail"]
+                    signIn: "",
+                    signUp: ""
                 },
                 default: true
             },
@@ -1062,43 +1067,36 @@ async function generateDB(organization = { document: {} }, user = { document: {}
         }
         createDocument(key);
 
-        // Create user
-        user.database = organization_id
-        user.collection = 'users'
-        user.document._id = user_id
-        user.document.firstname = user.document.firstname || 'untitiled'
-        user.document.lastname = user.document.lastname || 'untitiled'
-        user.organization_id = organization_id
-
-        createDocument(user);
-
-        // Create role permission
+        // Create role
         let role_id = ObjectId();
         let role = {
             database: organization_id,
             collection: 'keys',
             document: {
                 _id: role_id,
-                "type": "role",
-                "name": "admin",
-                "hosts": ["*"],
-                "admin": "true"
+                type: "role",
+                name: "admin",
+                hosts: ["*"],
+                admin: "true"
             },
             organization_id
         };
         createDocument(role);
 
-        // Create user permission
+        // Create user key
         let userKey = {
             database: organization_id,
             collection: 'keys',
             document: {
                 _id: ObjectId(),
-                "type": "user",
-                "key": user_id,
-                "roles": [role_id],
-                "email": user.document.email,
-                "password": user.document.password || btoa('0000')
+                type: "user",
+                key: user_id,
+                roles: [role_id],
+                email: user.document.email,
+                password: user.document.password || btoa('0000'),
+                user: {
+                    collection: 'users' // could be any collection
+                }
             },
             organization_id
         };
