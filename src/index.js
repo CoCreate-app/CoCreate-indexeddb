@@ -1054,9 +1054,6 @@ async function generateDB(organization = { document: {} }, user = { document: {}
                 _id: ObjectId(),
                 type: "key",
                 key: defaultKey,
-                hosts: [
-                    "*"
-                ],
                 actions: {
                     signIn: "",
                     signUp: ""
@@ -1076,7 +1073,6 @@ async function generateDB(organization = { document: {} }, user = { document: {}
                 _id: role_id,
                 type: "role",
                 name: "admin",
-                hosts: ["*"],
                 admin: "true"
             },
             organization_id
