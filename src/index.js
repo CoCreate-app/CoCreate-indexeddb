@@ -1055,8 +1055,8 @@ async function generateDB(organization = { document: {} }, user = { document: {}
                 type: "key",
                 key: defaultKey,
                 actions: {
-                    signIn: "",
-                    signUp: ""
+                    signIn: true,
+                    signUp: true
                 },
                 default: true
             },
@@ -1087,12 +1087,10 @@ async function generateDB(organization = { document: {} }, user = { document: {}
                 _id: ObjectId(),
                 type: "user",
                 key: user_id,
+                collection: 'users', // could be any collection
                 roles: [role_id],
                 email: user.document.email,
-                password: user.document.password || btoa('0000'),
-                user: {
-                    collection: 'users' // could be any collection
-                }
+                password: user.document.password || btoa('0000')
             },
             organization_id
         };
