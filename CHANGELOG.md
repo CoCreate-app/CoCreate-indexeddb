@@ -1,3 +1,11 @@
+## [1.10.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.1...v1.10.2) (2023-06-01)
+
+
+### Bug Fixes
+
+* Remove redundant "hosts" field from key and role objects in generateDB() ([e19a119](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/e19a119a773b3de54c6cea00db33b6bf3512bf8b))
+* Update generateDB function to use Boolean values for signIn and signUp keys ([22f89b4](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/22f89b4abecfdf8bcd2571bb0e6aac65e90fd98d))
+
 ## [1.10.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.0...v1.10.1) (2023-05-21)
 
 
