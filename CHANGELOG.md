@@ -1,3 +1,11 @@
+## [1.10.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.4...v1.10.5) (2023-06-04)
+
+
+### Bug Fixes
+
+* replaced secert GITHUB_TOKEN with GITHUB ([fdb0337](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/fdb0337ee0a66182285f487663945c80bb27ea1f))
+* Update dependencies versions for [@cocreate](https://github.com/cocreate) libraries ([8036314](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/80363148ca304e86a7318cf66f556de2cfe600f5))
+
 ## [1.10.4](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.3...v1.10.4) (2023-06-04)
 
 
