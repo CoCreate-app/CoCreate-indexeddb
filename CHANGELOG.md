@@ -1,3 +1,10 @@
+## [1.10.4](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.3...v1.10.4) (2023-06-04)
+
+
+### Bug Fixes
+
+* **semantic-release:** worklow error solved by running node version 14 ([7e24bb7](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/7e24bb7c0b244270aa25fc87c1b44ef52bf3a2b3))
+
 ## [1.10.3](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.2...v1.10.3) (2023-06-02)
 
 
