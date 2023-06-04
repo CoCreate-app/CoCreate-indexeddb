@@ -1,3 +1,10 @@
+## [1.10.6](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.5...v1.10.6) (2023-06-04)
+
+
+### Bug Fixes
+
+* Refactor CoCreate.config.js to remove hard-coded credentials ([823b357](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/823b35753f23b7e3378f44db41ed0ed26c54a43e))
+
 ## [1.10.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.4...v1.10.5) (2023-06-04)
 
 
