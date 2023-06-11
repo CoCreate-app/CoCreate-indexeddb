@@ -1,3 +1,10 @@
+## [1.10.11](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.10...v1.10.11) (2023-06-11)
+
+
+### Bug Fixes
+
+* @cocreate/cli moved to dependencies ([875c3a6](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/875c3a6b8a114be57995ba96f8a58330d27fcca9))
+
 ## [1.10.10](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.9...v1.10.10) (2023-06-11)
 
 
