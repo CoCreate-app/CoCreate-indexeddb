@@ -1,3 +1,10 @@
+## [1.10.17](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.16...v1.10.17) (2023-06-11)
+
+
+### Bug Fixes
+
+* testing workflow ([9792471](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/9792471ab77baccc9387bf9daef6e00a43f67b37))
+
 ## [1.10.16](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.15...v1.10.16) (2023-06-11)
 
 
