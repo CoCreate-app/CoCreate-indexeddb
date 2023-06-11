@@ -730,7 +730,7 @@ function runDocs({ action, data, objectStore, documents, filterDocs, database, c
         if (docsLength > 0) {
             for (let doc of docs) {
                 // TODO deDuplcate document_id per collection
-                delete doc.db
+                delete doc.storage
                 delete doc.database
                 delete doc.collection
 
@@ -741,7 +741,7 @@ function runDocs({ action, data, objectStore, documents, filterDocs, database, c
                         doc['modified'] = { on: data.timeStamp, by: data.user_id || data.clientId }
 
                         updateDoc(action, data, doc, objectStore, database, collection).then((doc) => {
-                            doc.db = 'indexeddb'
+                            doc.storage = 'indexeddb'
                             doc.database = database
                             doc.collection = collection
                             documents.push(doc)
@@ -784,7 +784,7 @@ function runDocs({ action, data, objectStore, documents, filterDocs, database, c
                         if (request.result) {
                             if (action == 'readDocument')
                                 doc = request.result
-                            doc.db = 'indexeddb'
+                            doc.storage = 'indexeddb'
                             doc.database = database
                             doc.collection = collection
 
@@ -1105,7 +1105,7 @@ async function generateDB(organization = { document: {} }, user = { document: {}
 
 function errorHandler(data, error, database, collection) {
     if (typeof error == 'object')
-        error['db'] = 'indexeddb'
+        error['storage'] = 'indexeddb'
     else
         error = { db: 'indexeddb', message: error }
 
