@@ -1,3 +1,10 @@
+## [1.10.12](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.11...v1.10.12) (2023-06-11)
+
+
+### Bug Fixes
+
+* postintall error ([7484087](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/7484087f8ab13ea13ccf3f33da7773cc7ba011a1))
+
 ## [1.10.11](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.10...v1.10.11) (2023-06-11)
 
 
