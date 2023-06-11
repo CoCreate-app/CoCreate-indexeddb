@@ -1,3 +1,11 @@
+## [1.10.9](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.8...v1.10.9) (2023-06-11)
+
+
+### Bug Fixes
+
+* renamed db to storage ([a22e3db](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/a22e3db59248bfc5bb75426edbecd8c306680a00))
+* renamed hosts to host. the value can be a string or an array of strings ([b79e991](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/b79e9911e95e06e278639cd8ad9050c5f3271c14))
+
 ## [1.10.8](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.7...v1.10.8) (2023-06-10)
 
 
