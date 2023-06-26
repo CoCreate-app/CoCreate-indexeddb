@@ -47,9 +47,9 @@ const Database = (action, data) => {
                     if (data.filter && data.filter.query) {
                         let isFilter = queryData(database, data.filter.query)
                         if (isFilter)
-                            databaseArray.push({ database, db: 'indexeddb' })
+                            databaseArray.push({ storage: 'indexeddb', database })
                     } else
-                        databaseArray.push({ database, db: 'indexeddb' })
+                        databaseArray.push({ storage: 'indexeddb', database })
                 }
 
                 resolve(createData(data, databaseArray, type))
@@ -285,9 +285,9 @@ const collection = (action, data) => {
                         if (data.filter && data.filter.query) {
                             let isFilter = queryData({ name: collection }, data.filter.query)
                             if (isFilter)
-                                collectionArray.push({ name: collection, db: 'indexeddb', database })
+                                collectionArray.push({ name: collection, storage: 'indexeddb', database })
                         } else
-                            collectionArray.push({ name: collection, db: 'indexeddb', database })
+                            collectionArray.push({ name: collection, storage: 'indexeddb', database })
                     }
 
                     databasesLength -= 1
@@ -327,7 +327,7 @@ const collection = (action, data) => {
 
                                     db.result.close()
 
-                                    collectionArray.push({ name: value, db: 'indexeddb', database })
+                                    collectionArray.push({ name: value, storage: 'indexeddb', database })
                                     collectionsLength -= 1
 
                                     if (!collectionsLength)
@@ -346,7 +346,7 @@ const collection = (action, data) => {
 
                                     db.close()
 
-                                    collectionArray.push({ name: collection, db: 'indexeddb', database })
+                                    collectionArray.push({ name: collection, storage: 'indexeddb', database })
                                     collectionsLength -= 1
 
                                     if (!collectionsLength)
@@ -362,7 +362,7 @@ const collection = (action, data) => {
                             })
 
                         } else {
-                            collectionArray.push({ name: collection, db: 'indexeddb', database })
+                            collectionArray.push({ name: collection, storage: 'indexeddb', database })
                             collectionsLength -= 1
 
                             if (!collectionsLength)
@@ -445,9 +445,9 @@ const index = (action, data) => {
                                 if (data.filter && data.filter.query) {
                                     let isFilter = queryData({ name: index }, data.filter.query)
                                     if (isFilter)
-                                        indexArray.push({ name: index, db: 'indexeddb', database, collection })
+                                        indexArray.push({ name: index, storage: 'indexeddb', database, collection })
                                 } else
-                                    indexArray.push({ name: index, db: 'indexeddb', database, collection })
+                                    indexArray.push({ name: index, storage: 'indexeddb', database, collection })
                             }
                             collectionsLength -= 1
                             db.close()
@@ -484,7 +484,7 @@ const index = (action, data) => {
                                     if (action == 'createIndex') {
                                         if (!indexExist) {
                                             objectStore.createIndex(index, index, { unique: false })
-                                            indexArray.push({ name: index, db: 'indexeddb', database, collection })
+                                            indexArray.push({ name: index, storage: 'indexeddb', database, collection })
                                         }
                                         else
                                             errorHandler(data, 'index exist', database, collection)
@@ -494,7 +494,7 @@ const index = (action, data) => {
                                         let indexObj = objectStore.index(index);
                                         if (indexExist && !valueExist) {
                                             indexObj.name = value;
-                                            indexArray.push({ name: value, db: 'indexeddb', database, collection })
+                                            indexArray.push({ name: value, storage: 'indexeddb', database, collection })
                                         }
                                         else
                                             errorHandler(data, 'index does not exist', database, collection)
@@ -503,7 +503,7 @@ const index = (action, data) => {
                                     if (action == 'deleteIndex') {
                                         if (indexExist) {
                                             objectStore.deleteIndex(index)
-                                            indexArray.push({ name: index, db: 'indexeddb', database, collection })
+                                            indexArray.push({ name: index, storage: 'indexeddb', database, collection })
                                         }
                                         else
                                             errorHandler(data, 'index does not exist', database, collection)
@@ -707,7 +707,7 @@ function runDocs({ action, data, objectStore, documents, filterDocs, database, c
         if (filterDocs && filterDocs.length) {
             if (action == 'readDocument') {
                 for (let i = 0; i < filterDocs.length; i++)
-                    documents.push({ db: 'indexeddb', database, collection, ...filterDocs[i] })
+                    documents.push({ storage: 'indexeddb', database, collection, ...filterDocs[i] })
 
             }
 
@@ -1107,7 +1107,7 @@ function errorHandler(data, error, database, collection) {
     if (typeof error == 'object')
         error['storage'] = 'indexeddb'
     else
-        error = { db: 'indexeddb', message: error }
+        error = { storage: 'indexeddb', message: error }
 
     if (database)
         error['database'] = database
