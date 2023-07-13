@@ -976,8 +976,8 @@ async function readDocs(data, database, collection, objectStore, direction) {
 
         let results = [], index = 0, limit
         if (data.filter) {
-            if (data.filter.startIndex)
-                index = data.filter.startIndex
+            if (data.filter.index)
+                index = data.filter.index
             if (data.filter.limit)
                 limit = data.filter.limit
             if (limit)
