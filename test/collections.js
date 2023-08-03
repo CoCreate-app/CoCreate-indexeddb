@@ -4,30 +4,34 @@ async function testCollections() {
         return;
     } else {
 
-        let createCollection = await CoCreate.indexeddb.createCollection({
+        let createCollection = await CoCreate.indexeddb.process({
+            method: 'create.array',
             database: ['testDB', 'testDB1', 'testDB2'],
-            collection: ['testCollection', 'testCollection1', 'testCollection2']  
-            
+            array: ['testCollection', 'testCollection1', 'testCollection2']
+
         })
         console.log('createCollection', createCollection)
 
-        let readCollection = await CoCreate.indexeddb.readCollection({
+        let readCollection = await CoCreate.indexeddb.process({
+            method: 'read.array',
             database: ['testDB', 'testDB1', 'testDB2'],
         })
         console.log('readCollection', readCollection)
 
-        let updateCollection = await CoCreate.indexeddb.updateCollection({
+        let updateCollection = await CoCreate.indexeddb.process({
+            method: 'update.array',
             database: ['testDB', 'testDB1', 'testDB2'],
-            collection: {testCollection: 'testCollectionA'}
+            array: { testCollection: 'testCollectionA' }
         })
         console.log('updateCollection', updateCollection)
 
 
-        let deleteCollection = await CoCreate.indexeddb.deleteCollection({
+        let deleteCollection = await CoCreate.indexeddb.process({
+            method: 'delete.array',
             database: ['testDB', 'testDB1', 'testDB2'],
-            collection: ['testCollectionA', 'testCollection1', 'testCollection2']  
+            array: ['testCollectionA', 'testCollection1', 'testCollection2']
         })
         console.log('deleteCollection', deleteCollection)
-        
+
     }
 }
