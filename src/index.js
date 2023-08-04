@@ -21,9 +21,9 @@
 // For details, visit <https://cocreate.app/licenses/> or contact us at sales@cocreate.app.
 
 import { ObjectId, dotNotationToObject, searchData, sortData, queryData } from '@cocreate/utils'
-import uuid from '@cocreate/uuid'
 
-let status = true;
+// let status = true;
+let indexedDbFunction
 function init() {
     // Check for support.
     if (!('indexedDB' in window)) {
@@ -46,11 +46,16 @@ function setStatus(value) {
         window.CoCreateConfig.indexeddb = value;
     else
         window.CoCreateConfig = { indexeddb: value };
-
-    status = value;
+    if (!value) {
+        indexedDbFunction = indexedDb
+        indexedDb = value;
+    } else {
+        indexedDb = indexedDbFunction
+        indexedDbFunction = true
+    }
 }
 
-async function process(data) {
+async function indexedDb(data) {
     try {
         let newData = [];
 
@@ -710,96 +715,6 @@ function readObject(data, database, array) {
     });
 }
 
-
-async function generateDB(organization = { object: {} }, user = { object: {} }) {
-    const organization_id = organization.object._id || ObjectId();
-    const defaultKey = organization.object.key || uuid.generate();
-    const user_id = user.object._id || ObjectId();
-
-    let apiKey = await process({ method: 'create.object', database: organization_id, array: 'keys', organization_id })
-    if (apiKey && apiKey.object && apiKey.object[0])
-        return
-
-    try {
-        // Create organization 
-        organization.method = 'create.object'
-        organization.database = organization_id
-        organization.array = 'organizations'
-        organization.object._id = organization_id
-        organization.object.name = organization.object.name || 'untitiled'
-        organization.organization_id = organization_id
-        process(organization);
-
-        // Create user
-        user.method = 'create.object'
-        user.database = organization_id
-        user.array = 'users'
-        user.object._id = user_id
-        user.object.firstname = user.object.firstname || 'untitiled'
-        user.object.lastname = user.object.lastname || 'untitiled'
-        user.organization_id = organization_id
-        process(user);
-
-        // Create default key
-        let key = {
-            method: 'create.object',
-            database: organization_id,
-            array: 'keys',
-            object: {
-                _id: ObjectId(),
-                type: "key",
-                key: defaultKey,
-                actions: {
-                    signIn: true,
-                    signUp: true
-                },
-                default: true
-            },
-            organization_id
-        }
-        process(key);
-
-        // Create role
-        let role_id = ObjectId();
-        let role = {
-            method: 'create.object',
-            database: organization_id,
-            array: 'keys',
-            object: {
-                _id: role_id,
-                type: "role",
-                name: "admin",
-                admin: "true"
-            },
-            organization_id
-        };
-        process(role);
-
-        // Create user key
-        let userKey = {
-            method: 'create.object',
-            database: organization_id,
-            array: 'keys',
-            object: {
-                _id: ObjectId(),
-                type: "user",
-                key: user_id,
-                array: 'users', // could be any array
-                roles: [role_id],
-                email: user.object.email,
-                password: user.object.password || btoa('0000')
-            },
-            organization_id
-        };
-        process(userKey);
-
-        return [organization, key, user, role, userKey]
-
-    } catch (error) {
-        return false
-    }
-}
-
 function errorHandler(data, error, database, array) {
     if (typeof error == 'object')
         error['storage'] = 'indexeddb'
@@ -814,7 +729,6 @@ function errorHandler(data, error, database, array) {
         data.error.push(error)
     else
         data.error = [error]
-
 }
 
 function createData(data, newData, type) {
@@ -836,9 +750,4 @@ function createData(data, newData, type) {
 
 init();
 
-export default {
-    status,
-    ObjectId,
-    process,
-    generateDB
-};
+export default indexedDb
