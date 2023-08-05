@@ -418,7 +418,7 @@ async function processObject(data, newData, database, array, type) {
     let filteredObjects
     let arrayExist = db.objectStoreNames.contains(array)
     if (arrayExist) {
-        if (data.filter || data.method == 'read.object' && (!data.object || !data.object.length)) {
+        if (data.filter || data.method == 'read.object' && !data.object && !data.object.length) {
             db.close()
             filteredObjects = await readObject(data, database, array)
             db = await processDatabase({ method: 'get.database', database })
@@ -443,6 +443,8 @@ async function processObject(data, newData, database, array, type) {
 
     if (Array.isArray(data[type]))
         objects.push(...data[type]);
+    else if (data[type] != undefined)
+        objects.push(data[type])
     // else if (data[type] != undefined && data.method == 'create.object')
     //     objects.push(data[type])
     // else if (data[type] != undefined)
@@ -488,25 +490,22 @@ async function processObject(data, newData, database, array, type) {
                 objects[i].array = array
                 newData.push(objects[i])
             }
-        } else {
-            if (data.method == 'create.object') {
-                if (!objects[i]._id)
-                    objects[i]['_id'] = ObjectId()
-                objects[i] = dotNotationToObject(objects[i])
+        } else if (data.method == 'create.object') {
+            if (!objects[i]._id)
+                objects[i]['_id'] = ObjectId()
+            objects[i] = dotNotationToObject(objects[i])
 
-                if (data.organization_id)
-                    objects[i]['organization_id'] = data.organization_id
-                objects[i]['created'] = { on: data.timeStamp, by: data.user_id || data.clientId }
-                await addGet(data, newData, database, array, objects[i], objectStore, 'add')
-            }
-
-            if (data.method == 'read.object') {
-                if (data.method == 'read.object' && objects[i]._id)
-                    await addGet(data, newData, database, array, objects[i], objectStore, 'get')
-                else
-                    errorHandler(data, { message: 'requires _id', object: objects[i] }, database, objectStore.name)
-            }
+            if (data.organization_id)
+                objects[i]['organization_id'] = data.organization_id
+            objects[i]['created'] = { on: data.timeStamp, by: data.user_id || data.clientId }
+            await addGet(data, newData, database, array, objects[i], objectStore, 'add')
+        } else if (data.method == 'read.object') {
+            if (objects[i]._id)
+                await addGet(data, newData, database, array, objects[i]._id, objectStore, 'get')
+            else
+                errorHandler(data, { message: 'requires _id', object: objects[i] }, database, objectStore.name)
         }
+
     }
 
     db.close()
@@ -514,7 +513,7 @@ async function processObject(data, newData, database, array, type) {
 
 function addGet(data, newData, database, array, object, objectStore, operator) {
     return new Promise((resolve, reject) => {
-        let request = objectStore[operator](object);
+        let request = objectStore[operator](object)
 
         request.onsuccess = function () {
             if (request.result) {
