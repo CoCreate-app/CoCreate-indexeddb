@@ -1,3 +1,23 @@
+# [1.11.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.20...v1.11.0) (2023-08-16)
+
+
+### Bug Fixes
+
+* crud attributes renamed ([f742fe0](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/f742fe0595be31d259fe5650f166a09fa83d5313))
+* Refactor code to use the property name 'storage' instead of 'db'. ([cb8bc5c](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/cb8bc5ca532157ef31e5b2ccd8624b240474fffc))
+* Refactor processObject function and addGet function in index.js ([3c42ab0](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/3c42ab05e77903074ce14f6edcbecde4cef68520))
+* Remove unnecessary configuration script in index.html ([47b5383](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/47b5383c79739ba8f3619799fccf4112cdca09c0))
+* replace -target -selector ([5fa8f51](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/5fa8f513f280c107489ae7a9234fb46db950ef18))
+* startIndex renamed to index ([ea6e704](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/ea6e704d10f9be9d553fadf5b8d6cfde66f2f6b4))
+* webpack.config and package.json make use of mode=production instead of process.env ([1bf57b6](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/1bf57b64359b545dc3e0005ed2c441528569a828))
+
+
+### Features
+
+* name attribute and variable renamed to key ([1173373](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/11733730694f0f4895c4ed7263d022256ed75df3))
+* refactored to improve code quality and performance ([db92baa](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/db92baae2a874b87685fe04db6733267c24cc1bb))
+* Remove commented out code, refactor the status variable, and export the indexedDb function ([1200a3e](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/1200a3e23203e16550adea89b87ddeae9d574806))
+
 ## [1.10.20](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.10.19...v1.10.20) (2023-06-14)
 
 
