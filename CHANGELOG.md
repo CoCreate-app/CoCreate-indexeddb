@@ -1,3 +1,10 @@
+## [1.13.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.13.1...v1.13.2) (2023-08-21)
+
+
+### Bug Fixes
+
+* update status logic ([2eee57a](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/2eee57afa24e3628d7a97f745d7694db8315b3c3))
+
 ## [1.13.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.13.0...v1.13.1) (2023-08-21)
 
 
