@@ -46,10 +46,11 @@ function setStatus(value) {
         window.CoCreateConfig.indexeddb = value;
     else
         window.CoCreateConfig = { indexeddb: value };
+
     if (!value) {
         indexedDbFunction = indexedDb
         indexedDb = value;
-    } else {
+    } else if (!indexedDb) {
         indexedDb = indexedDbFunction
         indexedDbFunction = true
     }
