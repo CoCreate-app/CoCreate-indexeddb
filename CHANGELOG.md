@@ -1,3 +1,12 @@
+## [1.12.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.12.0...v1.12.1) (2023-08-21)
+
+
+### Bug Fixes
+
+* /dist/CoCreate.js updated to https://CoCreate.app/dist/CoCreate.js ([05f6408](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/05f64080bd4abc1321647c04fc6169b2690df2dd))
+* replace cdn with /dist ([0b9a1bd](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/0b9a1bd904c81f1fbb3c94ad3f2f957e51ed33e2))
+* update file uploader ([a90638f](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/a90638fe62666334eb1dcf67d27beddf2edc821d))
+
 # [1.12.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.11.0...v1.12.0) (2023-08-17)
 
 
