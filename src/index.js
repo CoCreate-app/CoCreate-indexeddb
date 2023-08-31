@@ -423,7 +423,7 @@ async function processObject(data, newData, database, array, type) {
     let filteredObjects
     let arrayExist = db.objectStoreNames.contains(array)
     if (arrayExist) {
-        if (data.filter || data.method == 'read.object' && !data.object && !data.object.length) {
+        if (data.filter || data.method == 'read.object' && (!data.object || data.object && !data.object.length)) {
             db.close()
             filteredObjects = await readObject(data, database, array)
             db = await processDatabase({ method: 'get.database', database })
