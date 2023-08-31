@@ -63,9 +63,13 @@ async function indexedDb(data) {
         let type = data.method.split('.');
         type = type[type.length - 1];
 
-        if (type === 'database')
-            await processDatabase(data, newData, type)
-        else {
+        if (type === 'database') {
+            if (data.method === 'get.database') {
+                db = await processDatabase(data)
+                return db
+            } else
+                await processDatabase(data, newData, type)
+        } else {
             if (data.request)
                 data[type] = data.request
 
