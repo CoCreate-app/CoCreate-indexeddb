@@ -65,8 +65,7 @@ async function indexedDb(data) {
 
         if (type === 'database') {
             if (data.method === 'get.database') {
-                db = await processDatabase(data)
-                return db
+                return await processDatabase(data)
             } else
                 await processDatabase(data, newData, type)
         } else {
@@ -438,10 +437,10 @@ async function processObject(data, newData, database, array, type) {
         }
     }
 
-    let transaction, objectStore
+    // let transaction, objectStore
     if (array && db) {
-        transaction = db.transaction([array], "readwrite");
-        objectStore = transaction.objectStore(array);
+        var transaction = db.transaction([array], "readwrite");
+        var objectStore = transaction.objectStore(array);
     }
 
     let objects = []
