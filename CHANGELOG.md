@@ -1,3 +1,12 @@
+## [1.13.3](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.13.2...v1.13.3) (2023-09-07)
+
+
+### Bug Fixes
+
+* get.database response ([a2311df](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/a2311df7ef6c29cab8e21144ff10fa94a9c71540))
+* handle method get.database ([dbc998e](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/dbc998ef9e7cd141c14c41c55e625bec9c996e55))
+* Refactor condition for filtering objects in `processObject` function ([d5fc6a3](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/d5fc6a32ff3f09d2d6542c7733d4963df7900513))
+
 ## [1.13.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.13.1...v1.13.2) (2023-08-21)
 
 
