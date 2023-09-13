@@ -50,7 +50,7 @@ async function testDocuments() {
             // object: {
             //     _id
             // }
-            filter: {
+            $filter: {
                 query: [
                     { key: 'organization_id', value: "5ff747727005da1c272740ab" }
                 ]

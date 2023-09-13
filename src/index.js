@@ -118,12 +118,12 @@ const processDatabase = (data, newData, type) => {
         if (data.method == 'read.database') {
             indexedDB.databases().then((databases) => {
                 for (let database of databases) {
-                    if (data.filter && data.filter.query) {
-                        let isFilter = queryData(database, data.filter.query)
+                    if (data.$filter && data.$filter.query) {
+                        let isFilter = queryData(database, data.$filter.query)
                         if (isFilter)
-                            newData.push({ storage: 'indexeddb', database })
+                            newData.push({ $storage: 'indexeddb', $database: database })
                     } else
-                        newData.push({ storage: 'indexeddb', database })
+                        newData.push({ $storage: 'indexeddb', $database: database })
                 }
 
                 resolve()
@@ -299,12 +299,12 @@ async function processArray(data, newData, database, type) {
             data[type] = []
 
         for (let i = 0; i < objectStoreNames.length; i++) {
-            if (data.filter && data.filter.query) {
-                let isFilter = queryData({ name: objectStoreNames[i] }, data.filter.query)
+            if (data.$filter && data.$filter.query) {
+                let isFilter = queryData({ name: objectStoreNames[i] }, data.$filter.query)
                 if (isFilter)
-                    newData.push({ name: objectStoreNames, storage: 'indexeddb', database })
+                    newData.push({ name: objectStoreNames, $storage: 'indexeddb', $database: database })
             } else
-                newData.push({ name: objectStoreNames[i], storage: 'indexeddb', database })
+                newData.push({ name: objectStoreNames[i], $storage: 'indexeddb', $database: database })
         }
     } else {
         let arrays
@@ -345,7 +345,7 @@ async function processArray(data, newData, database, type) {
             db.result.close()
 
             if (!error)
-                newData.push({ name: array, storage: 'indexeddb', database })
+                newData.push({ name: array, $storage: 'indexeddb', $database: database })
             else
                 errorHandler(data, error, database)
         }
@@ -364,10 +364,10 @@ async function processIndex(data, newData, database, array, type) {
         if (data.method == 'read.index') {
             for (let i = 0; i < indexNames.length; i++) {
                 let name = indexNames[i]
-                if (data.filter && data.filter.query)
-                    if (!(queryData({ name }, data.filter.query))) continue
+                if (data.$filter && data.$filter.query)
+                    if (!(queryData({ name }, data.$filter.query))) continue
 
-                newData.push({ name, storage: 'indexeddb', database, array })
+                newData.push({ name, $storage: 'indexeddb', $database: database, $array: array })
             }
             db.close()
         } else {
@@ -407,7 +407,7 @@ async function processIndex(data, newData, database, array, type) {
                     error = 'index does not exist'
 
                 if (!error)
-                    newData.push({ name: index, storage: 'indexeddb', database, array })
+                    newData.push({ name: index, $storage: 'indexeddb', $database: database, $array: array })
                 else
                     errorHandler(data, error, database, array)
 
@@ -422,7 +422,7 @@ async function processObject(data, newData, database, array, type) {
     let filteredObjects
     let arrayExist = db.objectStoreNames.contains(array)
     if (arrayExist) {
-        if (data.filter || data.method == 'read.object' && (!data.object || data.object && !data.object.length)) {
+        if (data.$filter || data.method == 'read.object' && (!data.object || data.object && !data.object.length)) {
             db.close()
             filteredObjects = await readObject(data, database, array)
             db = await processDatabase({ method: 'get.database', database })
@@ -430,7 +430,7 @@ async function processObject(data, newData, database, array, type) {
     } else {
         db.close()
         db = processDatabase({ method: 'get.database', database, array })
-        if (data.filter || data.method == 'read.object' && (!data.object || !data.object.length)) {
+        if (data.$filter || data.method == 'read.object' && (!data.object || !data.object.length)) {
             db.close()
             filteredObjects = await readObject(data, database, array)
             db = processDatabase({ method: 'get.database', database })
@@ -439,7 +439,11 @@ async function processObject(data, newData, database, array, type) {
 
     // let transaction, objectStore
     if (array && db) {
-        var transaction = db.transaction([array], "readwrite");
+        let transactionType = "readwrite"
+        if (data.method == 'read.object')
+            transactionType = "readonly"
+
+        var transaction = db.transaction([array], transactionType);
         var objectStore = transaction.objectStore(array);
     }
 
@@ -458,7 +462,7 @@ async function processObject(data, newData, database, array, type) {
     if (filteredObjects && filteredObjects.length) {
         if (data.method == 'read.object') {
             for (let i = 0; i < filteredObjects.length; i++)
-                newData.push({ storage: 'indexeddb', database, array, ...filteredObjects[i] })
+                newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...filteredObjects[i] })
 
         }
 
@@ -478,9 +482,9 @@ async function processObject(data, newData, database, array, type) {
 
     for (let i = 0; i < objects.length; i++) {
         // TODO deDuplcate object per array
-        delete objects[i].storage
-        delete objects[i].database
-        delete objects[i].array
+        delete objects[i].$storage
+        delete objects[i].$database
+        delete objects[i].$array
 
         if (data.method == 'update.object' || data.method == 'delete.object') {
             if (objects[i]._id) {
@@ -489,9 +493,9 @@ async function processObject(data, newData, database, array, type) {
                 objects[i]['modified'] = { on: data.timeStamp, by: data.user_id || data.clientId }
 
                 await updateObject(data, objects[i], objectStore, database, array)
-                objects[i].storage = 'indexeddb'
-                objects[i].database = database
-                objects[i].array = array
+                objects[i].$storage = 'indexeddb'
+                objects[i].$database = database
+                objects[i].$array = array
                 newData.push(objects[i])
             }
         } else if (data.method == 'create.object') {
@@ -523,9 +527,9 @@ function addGet(data, newData, database, array, object, objectStore, operator) {
             if (request.result) {
                 if (data.method == 'read.object')
                     object = request.result
-                object.storage = 'indexeddb'
-                object.database = database
-                object.array = array
+                object.$storage = 'indexeddb'
+                object.$database = database
+                object.$array = array
 
                 newData.push(object)
             }
@@ -624,17 +628,17 @@ function readObject(data, database, array) {
             let transaction = db.transaction([array], "readonly");
             let objectStore = transaction.objectStore(array);
 
-            if (data.filter) {
+            if (data.$filter) {
                 let count = objectStore.count();
                 count.onsuccess = function () {
-                    data.filter.count = count.result
+                    data.$filter.count = count.result
                 }
             }
 
             let isIndex = false
             let indexName, direction;
-            if (data.filter && data.filter.sort && data.filter.sort[0] && data.filter.sort[0].name) {
-                indexName = data.filter.sort[0].name
+            if (data.$filter && data.$filter.sort && data.$filter.sort[0] && data.$filter.sort[0].name) {
+                indexName = data.$filter.sort[0].name
                 // if (indexName.includes('-'))
                 //     isIndex = false
                 // else
@@ -642,7 +646,7 @@ function readObject(data, database, array) {
             }
 
             if (isIndex) {
-                direction = data.filter.sort[0].direction
+                direction = data.$filter.sort[0].direction
                 if (direction == 'desc')
                     direction = 'prev'
                 else
@@ -665,11 +669,11 @@ function readObject(data, database, array) {
             }
 
             let results = [], index = 0, limit
-            if (data.filter) {
-                if (data.filter.index)
-                    index = data.filter.index
-                if (data.filter.limit)
-                    limit = data.filter.limit
+            if (data.$filter) {
+                if (data.$filter.index)
+                    index = data.$filter.index
+                if (data.$filter.limit)
+                    limit = data.$filter.limit
                 if (limit)
                     limit = index + limit;
             }
@@ -680,11 +684,11 @@ function readObject(data, database, array) {
                 if (cursor) {
                     let isFilter = true;
                     let value = cursor.value;
-                    if (data.filter) {
-                        if (data.filter.query)
-                            isFilter = queryData(value, data.filter.query);
-                        if (isFilter && data.filter.search)
-                            isFilter = searchData(value, data.filter.search);
+                    if (data.$filter) {
+                        if (data.$filter.query)
+                            isFilter = queryData(value, data.$filter.query);
+                        if (isFilter && data.$filter.search)
+                            isFilter = searchData(value, data.$filter.search);
                     }
                     if (isFilter !== false)
                         results.push(value)
@@ -737,8 +741,8 @@ function errorHandler(data, error, database, array) {
 function createData(data, newData, type) {
     data.request = data[type] || {}
 
-    if (data.filter && data.filter.sort)
-        data[type] = sortData(newData, data.filter.sort)
+    if (data.$filter && data.$filter.sort)
+        data[type] = sortData(newData, data.$filter.sort)
     else
         data[type] = newData
 
