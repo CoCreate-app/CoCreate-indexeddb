@@ -49,14 +49,14 @@ function setStatus(value) {
 
     if (!value) {
         indexedDbFunction = indexedDb
-        indexedDb = value;
-    } else if (!indexedDb) {
-        indexedDb = indexedDbFunction
+        send = value;
+    } else if (!send) {
+        send = indexedDbFunction
         indexedDbFunction = true
     }
 }
 
-async function indexedDb(data) {
+async function send(data) {
     try {
         let newData = [];
 
@@ -419,323 +419,239 @@ async function processIndex(data, newData, database, array, type) {
 
 async function processObject(data, newData, database, array, type) {
     let db = await processDatabase({ method: 'get.database', database })
-    let filteredObjects
+
+    let isFilter
+    if (data.$filter && data.$filter.query)
+        isFilter = true
+
     let arrayExist = db.objectStoreNames.contains(array)
-    if (arrayExist) {
+    if (!arrayExist) {
         if (data.$filter || data.method == 'read.object' && (!data.object || data.object && !data.object.length)) {
             db.close()
-            filteredObjects = await readObject(data, database, array)
-            db = await processDatabase({ method: 'get.database', database })
-        }
-    } else {
-        db.close()
-        db = processDatabase({ method: 'get.database', database, array })
-        if (data.$filter || data.method == 'read.object' && (!data.object || !data.object.length)) {
-            db.close()
-            filteredObjects = await readObject(data, database, array)
-            db = processDatabase({ method: 'get.database', database })
+            db = await processDatabase({ method: 'get.database', database, array })
         }
     }
 
-    // let transaction, objectStore
-    if (array && db) {
-        let transactionType = "readwrite"
-        if (data.method == 'read.object')
-            transactionType = "readonly"
+    if (!array || !db)
+        throw new Error({ error: "This is an error message.", db, array });
 
-        var transaction = db.transaction([array], transactionType);
-        var objectStore = transaction.objectStore(array);
-    }
+    let transactionType = "readwrite"
+    if (data.method == 'read.object')
+        transactionType = "readonly"
 
-    let objects = []
+    let transaction = db.transaction([array], transactionType);
+    let objectStore = transaction.objectStore(array);
 
-    if (Array.isArray(data[type]))
-        objects.push(...data[type]);
-    else if (data[type] != undefined)
-        objects.push(data[type])
-    // else if (data[type] != undefined && data.method == 'create.object')
-    //     objects.push(data[type])
-    // else if (data[type] != undefined)
-    //     objects.push({...data[type]})
+    if (data[type] && !Array.isArray(data[type]))
+        data[type] = [data[type]]
 
+    if (isFilter && (!data[type] || !data[type].length))
+        data[type] = [{}]
 
-    if (filteredObjects && filteredObjects.length) {
-        if (data.method == 'read.object') {
-            for (let i = 0; i < filteredObjects.length; i++)
-                newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...filteredObjects[i] })
+    let upsert = data.upsert
+    try {
 
-        }
+        for (let i = 0; i < data[type].length; i++) {
+            delete data[type][i].$storage
+            delete data[type][i].$database
+            delete data[type][i].$array
 
-        if (data.method == 'update.object') {
-            let updateData = objects[0];
-            if (updateData)
-                objects.shift();
-            for (let filterDoc of filteredObjects) {
-                filterDoc = dotNotationToObject(updateData, filterDoc)
-                objects.push(filterDoc)
-            }
-        }
+            if (data.method == 'create.object') {
+                if (!data[type][i]._id)
+                    data[type][i]['_id'] = ObjectId()
+                data[type][i] = dotNotationToObject(data[type][i])
+                data[type][i]['created'] = { on: data.timeStamp, by: data.user_id || data.clientId }
 
-        if (data.method == 'delete.object')
-            objects.push(...filteredObjects)
-    }
-
-    for (let i = 0; i < objects.length; i++) {
-        // TODO deDuplcate object per array
-        delete objects[i].$storage
-        delete objects[i].$database
-        delete objects[i].$array
-
-        if (data.method == 'update.object' || data.method == 'delete.object') {
-            if (objects[i]._id) {
+                let result = await add(objectStore, data[type][i])
+                newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
+            } else {
+                if (data[type][i].$filter)
+                    isFilter = true
                 if (data.organization_id)
-                    objects[i]['organization_id'] = data.organization_id
-                objects[i]['modified'] = { on: data.timeStamp, by: data.user_id || data.clientId }
+                    data[type][i]['organization_id'] = data.organization_id
 
-                await updateObject(data, objects[i], objectStore, database, array)
-                objects[i].$storage = 'indexeddb'
-                objects[i].$database = database
-                objects[i].$array = array
-                newData.push(objects[i])
+                if (data.method == 'update.object') {
+                    if (data[type][i].$upsert)
+                        upsert = data[type][i].$upsert
+
+                    if (!data[type][i]._id && upsert)
+                        data[type][i]._id = ObjectId()
+                    data[type][i]['modified'] = { on: data.timeStamp, by: data.user_id || data.clientId }
+                }
+
+                let index = 0, limit, range, direction
+                if (data[type][i]._id)
+                    range = IDBKeyRange.only(data[type][i]._id);
+                else if (isFilter) {
+                    if (data.$filter || object.$filter) {
+                        let count = objectStore.count();
+                        count.onsuccess = function () {
+                            data.$filter.count = count.result
+                        }
+                    }
+
+                    let isIndex = false
+                    let indexName, direction;
+                    if (data.$filter && data.$filter.sort && data.$filter.sort[0] && data.$filter.sort[0].name) {
+                        indexName = data.$filter.sort[0].name
+                        // if (indexName.includes('-'))
+                        //     isIndex = false
+                        // else
+                        // isIndex = true
+                    }
+
+                    if (isIndex) {
+                        direction = data.$filter.sort[0].direction
+                        if (direction == 'desc')
+                            direction = 'prev'
+                        else
+                            direction = 'next'
+
+                        let indexNames = Array.from(objectStore.indexNames)
+                        let indexExist = indexNames.includes(indexName)
+                        if (!indexExist) {
+                            db.close()
+                            db = await processDatabase({ method: 'get.database', database, upgrade: true })
+                            transaction = db.transaction([array], 'readwrite');
+                            objectStore = transaction.objectStore(array);
+                            try {
+                                objectStore.createIndex(indexName, indexName, { unique: false })
+                            } catch (error) {
+                                // console.log(error)
+                            }
+                        }
+                        objectStore = objectStore.index(indexName);
+                    }
+
+                    if (data.$filter) {
+                        if (data.$filter.index)
+                            index = data.$filter.index
+                        if (data.$filter.limit)
+                            limit = data.$filter.limit
+                        if (limit)
+                            limit = index + limit;
+                    }
+                }
+
+                let cursor = await openCursor(objectStore, range, direction)
+                if (cursor) {
+                    let isMatch = true
+
+                    if (isFilter)
+                        isMatch = filter(objectStore, data[type][i], cursor.value)
+
+                    if (isMatch !== false) {
+                        let result
+                        if (data.method == 'create.object') {
+                            result = await add(objectStore, data[type][i])
+                        } else if (data.method == 'read.object') {
+                            result = await get(objectStore, data[type][i])
+                        } else if (data.method == 'update.object') {
+                            data[type][i] = dotNotationToObject(data[type][i], cursor.value)
+                            data[type][i] = createUpdate(data, data[type][i])
+                            result = await put(objectStore, data[type][i])
+                        } else if (data.method == 'delete.object') {
+                            result = await deleteObject(objectStore, data[type][i])
+                        }
+
+                        newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
+                    }
+
+                    limit && limit == newData.length ? '' : cursor.continue();
+
+                } else if (index)
+                    newData = newData.slice(index)
             }
-        } else if (data.method == 'create.object') {
-            if (!objects[i]._id)
-                objects[i]['_id'] = ObjectId()
-            objects[i] = dotNotationToObject(objects[i])
-
-            if (data.organization_id)
-                objects[i]['organization_id'] = data.organization_id
-            objects[i]['created'] = { on: data.timeStamp, by: data.user_id || data.clientId }
-            await addGet(data, newData, database, array, objects[i], objectStore, 'add')
-        } else if (data.method == 'read.object') {
-            if (objects[i]._id)
-                await addGet(data, newData, database, array, objects[i]._id, objectStore, 'get')
-            else
-                errorHandler(data, { message: 'requires _id', object: objects[i] }, database, objectStore.name)
         }
-
+    } catch (error) {
+        errorHandler(data, error, database, array)
     }
 
     db.close()
 }
 
-function addGet(data, newData, database, array, object, objectStore, operator) {
-    return new Promise((resolve, reject) => {
-        let request = objectStore[operator](object)
-
-        request.onsuccess = function () {
-            if (request.result) {
-                if (data.method == 'read.object')
-                    object = request.result
-                object.$storage = 'indexeddb'
-                object.$database = database
-                object.$array = array
-
-                newData.push(object)
-            }
-            resolve()
-        };
-
-        request.onerror = function () {
-            errorHandler(data, { message: request.error, object }, database, objectStore.name)
-            resolve()
-        };
-
-    });
-}
-
-function updateObject(data, doc, objectStore, database, array) {
-    return new Promise((resolve, reject) => {
-        let get = objectStore.get(doc._id)
-        get.onsuccess = function () {
-            let result = get.result
-            if (result || data.upsert == true) {
-                let modify = true
-                if (result && doc.modified && result.modified)
-                    if (doc.modified.on < result.modified.on)
-                        modify = false
-
-                if (modify) {
-                    if (data.method == 'update.object') {
-                        doc = dotNotationToObject(doc, get.result)
-
-                        if (data.updateName) {
-                            for (let key of Object.keys(data.updateName)) {
-                                let val = doc[key]
-                                delete doc[key]
-                                doc[data.updateName[key]] = val
-                            }
-                        }
-
-                        if (data.deleteName) {
-                            for (let key of Object.keys(data.deleteName)) {
-                                delete doc[key]
-                            }
-
-                        }
-
-                        let put = objectStore.put(doc);
-
-                        put.onsuccess = function () {
-                            resolve(doc)
-                        };
-
-                        put.onerror = function () {
-                            errorHandler(data, put.error, database, array, doc)
-                            resolve(doc)
-                        };
-
-                    }
-
-                    if (data.method == 'delete.object') {
-                        let deleteDoc = objectStore.delete(doc._id);
-
-                        deleteDoc.onsuccess = function () {
-                            resolve(doc)
-                        };
-
-                        deleteDoc.onerror = function () {
-                            errorHandler(data, deleteDoc.error, database, array, doc)
-                            resolve(doc)
-                        };
-                    }
-
-                } else {
-                    // TODO: handle if _id not found upsert
-                    errorHandler(data, 'doc in db is newer', database, array, doc)
-                    resolve(doc)
-                }
-            } else {
-                errorHandler(data, 'object doest not exist and upsert is not true', database, array, doc)
-                resolve(doc)
-            }
-
-        };
-
-        get.onerror = function () {
-            errorHandler(data, get.error, database, array, doc)
-            resolve(doc)
-        };
-
-    })
-}
-
-function readObject(data, database, array) {
+function openCursor(objectStore, range, direction) {
     return new Promise(async (resolve, reject) => {
-
-        try {
-            let db = await processDatabase({ method: 'get.database', database })
-            let transaction = db.transaction([array], "readonly");
-            let objectStore = transaction.objectStore(array);
-
-            if (data.$filter) {
-                let count = objectStore.count();
-                count.onsuccess = function () {
-                    data.$filter.count = count.result
-                }
-            }
-
-            let isIndex = false
-            let indexName, direction;
-            if (data.$filter && data.$filter.sort && data.$filter.sort[0] && data.$filter.sort[0].name) {
-                indexName = data.$filter.sort[0].name
-                // if (indexName.includes('-'))
-                //     isIndex = false
-                // else
-                // isIndex = true
-            }
-
-            if (isIndex) {
-                direction = data.$filter.sort[0].direction
-                if (direction == 'desc')
-                    direction = 'prev'
-                else
-                    direction = 'next'
-
-                let indexNames = Array.from(objectStore.indexNames)
-                let indexExist = indexNames.includes(indexName)
-                if (!indexExist) {
-                    db.close()
-                    db = await processDatabase({ method: 'get.database', database, upgrade: true })
-                    transaction = db.transaction;
-                    objectStore = transaction.objectStore(array);
-                    try {
-                        objectStore.createIndex(indexName, indexName, { unique: false })
-                    } catch (error) {
-                        // console.log(error)
-                    }
-                }
-                objectStore = objectStore.index(indexName);
-            }
-
-            let results = [], index = 0, limit
-            if (data.$filter) {
-                if (data.$filter.index)
-                    index = data.$filter.index
-                if (data.$filter.limit)
-                    limit = data.$filter.limit
-                if (limit)
-                    limit = index + limit;
-            }
-
-            const request = objectStore.openCursor(null, direction);
-            request.onsuccess = function () {
-                let cursor = request.result;
-                if (cursor) {
-                    let isFilter = true;
-                    let value = cursor.value;
-                    if (data.$filter) {
-                        if (data.$filter.query)
-                            isFilter = queryData(value, data.$filter.query);
-                        if (isFilter && data.$filter.search)
-                            isFilter = searchData(value, data.$filter.search);
-                    }
-                    if (isFilter !== false)
-                        results.push(value)
-                    if (limit && limit == results.length) {
-                        results = results.slice(index, limit)
-                        resolve(results)
-                    } else
-                        cursor.continue();
-                } else {
-                    if (index)
-                        results = results.slice(index)
-                    resolve(results)
-                }
-            }
-
-            request.onerror = function () {
-                errorHandler(data, request.error, database, array)
-                db.close()
-                resolve([])
-            };
-
-
-            if (db && db.close)
-                db.close()
-            // return results
-
-        } catch (error) {
-            errorHandler(data, error, database, array)
-            resolve([])
-        }
+        const request = objectStore.openCursor(range, direction);// next, prev
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error)
     });
 }
 
-function errorHandler(data, error, database, array) {
-    if (typeof error == 'object')
-        error['storage'] = 'indexeddb'
-    else
-        error = { storage: 'indexeddb', message: error }
+function add(objectStore, object) {
+    return new Promise((resolve, reject) => {
+        const request = objectStore.add(object);
+        request.onsuccess = () => resolve(object);
+        request.onerror = () => reject(request.error);
+    });
+}
 
-    if (database)
-        error['database'] = database
-    if (array)
-        error['array'] = array
-    if (data.error)
-        data.error.push(error)
-    else
-        data.error = [error]
+function get(objectStore, object) {
+    return new Promise((resolve, reject) => {
+        const request = objectStore.get(object._id);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+function put(objectStore, object) {
+    return new Promise((resolve, reject) => {
+        const request = objectStore.put(object);
+        request.onsuccess = () => resolve(object);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+function deleteObject(objectStore, object) {
+    return new Promise((resolve, reject) => {
+        const request = objectStore.delete(object._id);
+        request.onsuccess = () => resolve(object);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+
+function createUpdate(data, object) {
+    if (data.updateName) {
+        for (let key of Object.keys(data.updateName)) {
+            let val = object[key]
+            delete object[key]
+            object[data.updateName[key]] = val
+        }
+    }
+
+    if (data.deleteName) {
+        for (let key of Object.keys(data.deleteName)) {
+            delete object[key]
+        }
+
+    }
+    return object
+}
+
+function filter(data, object, result) {
+    let isMatch = true;
+
+    if (data.$filter || object.$filter) {
+        let count = objectStore.count();
+        count.onsuccess = function () {
+            data.$filter.count = count.result
+        }
+    }
+
+    if (data.$filter) {
+        if (data.$filter.query)
+            isMatch = queryData(result, data.$filter.query);
+        if (isMatch && data.$filter.search)
+            isMatch = searchData(result, data.$filter.search);
+    }
+
+    let modify = true
+    if (result && object.modified && result.modified)
+        if (object.modified.on < result.modified.on)
+            modify = false
+
+    return isMatch
 }
 
 function createData(data, newData, type) {
@@ -755,6 +671,22 @@ function createData(data, newData, type) {
     return data
 }
 
+function errorHandler(data, error, database, array) {
+    if (typeof error == 'object')
+        error['storage'] = 'indexeddb'
+    else
+        error = { storage: 'indexeddb', message: error }
+
+    if (database)
+        error['database'] = database
+    if (array)
+        error['array'] = array
+    if (data.error)
+        data.error.push(error)
+    else
+        data.error = [error]
+}
+
 init();
 
-export default indexedDb
+export default { send }
