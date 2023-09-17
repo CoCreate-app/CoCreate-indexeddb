@@ -1,3 +1,11 @@
+## [1.13.4](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.13.3...v1.13.4) (2023-09-17)
+
+
+### Bug Fixes
+
+* renamed filter to $filter ([00c58a5](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/00c58a585b27e88c735a35e9a85cf234b060347c))
+* update indexeddb() to indexeddb.send() ([6568ef6](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/6568ef68d4f38490ffc57086661d4a5b8ae3b721))
+
 ## [1.13.3](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.13.2...v1.13.3) (2023-09-07)
 
 
