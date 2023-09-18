@@ -8,17 +8,16 @@ module.exports = {
             "object": {
                 "_id": "637ca2aa50234ef1671ce308",
                 "name": "index.html",
-                "path": "/docs/indexeddb/index.html",
+                "path": "/docs/indexeddb",
+                "pathname": "/docs/indexeddb/index.html",
                 "src": "{{./docs/index.html}}",
                 "host": [
                     "cocreate.app",
                     "general.cocreate.app"
                 ],
-                "directory": "/docs/indexeddb",
-                "parentDirectory": "{{parentDirectory}}",
+                "directory": "indexeddb",
                 "content-type": "{{content-type}}",
-                "public": "true",
-                "website_id": "644d4bff8036fb9d1d1fd69c"
+                "public": "true"
             }
         }
     ]
