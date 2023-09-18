@@ -1,3 +1,11 @@
+## [1.13.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.13.4...v1.13.5) (2023-09-18)
+
+
+### Bug Fixes
+
+*  Add path and pathname ([9324f2b](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/9324f2b2088060ac9dd44e8479538328cacb99e7))
+* Update CoCreate depndencies to latest versions ([635996b](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/635996bdde146f632eab7bc8cc4f674d6f5b585f))
+
 ## [1.13.4](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.13.3...v1.13.4) (2023-09-17)
 
 
