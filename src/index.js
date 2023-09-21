@@ -15,15 +15,18 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  ********************************************************************************/
 
-// Commercial Licensing Information:
-// For commercial use of this software without the copyleft provisions of the AGPLv3,
-// you must obtain a commercial license from CoCreate LLC.
-// For details, visit <https://cocreate.app/licenses/> or contact us at sales@cocreate.app.
+/**
+ * Commercial Licensing Information:
+ * For commercial use of this software without the copyleft provisions of the AGPLv3,
+ * you must obtain a commercial license from CoCreate LLC.
+ * For details, visit <https://cocreate.app/licenses/> or contact us at sales@cocreate.app
+ */
 
 import { ObjectId, dotNotationToObject, searchData, sortData, queryData } from '@cocreate/utils'
 
 // let status = true;
 let indexedDbFunction
+
 function init() {
     // Check for support.
     if (!('indexedDB' in window)) {
@@ -69,7 +72,8 @@ async function send(data) {
             } else
                 await processDatabase(data, newData, type)
         } else {
-            if (data.request)
+            // TODO: Test all methods and decide where data.request is needed
+            if (data.request && data.method !== 'update.object' && data.method !== 'create.object')
                 data[type] = data.request
 
             if (!data['timeStamp'])
@@ -448,6 +452,7 @@ async function processObject(data, newData, database, array, type) {
     if (isFilter && (!data[type] || !data[type].length))
         data[type] = [{}]
 
+    let globalOperators = getGlobalOperators(data)
     let upsert = data.upsert
     try {
 
@@ -473,9 +478,6 @@ async function processObject(data, newData, database, array, type) {
                 if (data.method == 'update.object') {
                     if (data[type][i].$upsert)
                         upsert = data[type][i].$upsert
-
-                    if (!data[type][i]._id && upsert)
-                        data[type][i]._id = ObjectId()
                     data[type][i]['modified'] = { on: data.timeStamp, by: data.user_id || data.clientId }
                 }
 
@@ -483,7 +485,7 @@ async function processObject(data, newData, database, array, type) {
                 if (data[type][i]._id)
                     range = IDBKeyRange.only(data[type][i]._id);
                 else if (isFilter) {
-                    if (data.$filter || object.$filter) {
+                    if (data.$filter || data.object.$filter) {
                         let count = objectStore.count();
                         count.onsuccess = function () {
                             data.$filter.count = count.result
@@ -533,8 +535,19 @@ async function processObject(data, newData, database, array, type) {
                     }
                 }
 
+                // handle upsert if cursor returns no value
                 let cursor = await openCursor(objectStore, range, direction)
-                if (cursor) {
+                if (!cursor && data.method === 'update.object' && data.upsert) {
+                    let isMatch = true
+                    if (isFilter)
+                        isMatch = filter(objectStore, data[type][i], data[type][i])
+
+                    if (isMatch !== false) {
+                        let result = await put(objectStore, data[type][i])
+                        newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
+                    }
+
+                } else if (cursor) {
                     let isMatch = true
 
                     if (isFilter)
@@ -547,9 +560,9 @@ async function processObject(data, newData, database, array, type) {
                         } else if (data.method == 'read.object') {
                             result = await get(objectStore, data[type][i])
                         } else if (data.method == 'update.object') {
-                            data[type][i] = dotNotationToObject(data[type][i], cursor.value)
-                            data[type][i] = createUpdate(data, data[type][i])
-                            result = await put(objectStore, data[type][i])
+                            let update = createUpdate(cursor.value, data[type][i], globalOperators)
+                            if (update)
+                                result = await put(objectStore, update)
                         } else if (data.method == 'delete.object') {
                             result = await deleteObject(objectStore, data[type][i])
                         }
@@ -568,6 +581,123 @@ async function processObject(data, newData, database, array, type) {
     }
 
     db.close()
+}
+
+function getGlobalOperators(data, object = {}) {
+    for (let operator of Object.keys(data)) {
+        if (!operator.startsWith('$'))
+            return
+        for (let key of Object.keys(data[operator]))
+            object[operator + '.' + key] = data[operator][key]
+    }
+
+    return object
+}
+
+function createUpdate(update, data, globalOpertors) {
+    let operatorKeys = {}
+    if (globalOpertors)
+        operatorKeys = { ...globalOpertors }
+
+    Object.keys(data).forEach(key => {
+        if (key === '_id')
+            return
+
+        if (key.startsWith('$')) {
+            if (!key.includes('.'))
+                for (let oldkey of Object.keys(data[key]))
+                    operatorKeys[key + '.' + oldkey] = data[key][oldkey]
+            else
+                operatorKeys[key] = data[key]
+        } else if (typeof data[key] === 'string' && data[key].startsWith('$')) {
+            operatorKeys[data[key] + '.' + key] = data[key]
+        } else if (key.endsWith(']')) {
+            const regex = /^(.*(?:\[\d+\].*?)?)\[(.*?)\](?:\[\])?$/;
+            const match = key.match(regex);
+            if (match[2] === '')
+                operatorKeys['$push.' + match[1]] = data[key]
+            else {
+                let index = parseInt(match[2], 10);
+                if (index === NaN)
+                    operatorKeys[match[2] + '.' + match[1]] = data[key]
+                else
+                    operatorKeys[key] = data[key]
+            }
+        } else if (key.includes('.')) {
+            operatorKeys[key] = data[key]
+        } else if (data[key] === undefined) {
+            delete update[key]
+        } else
+            update[key] = data[key]
+
+    })
+
+    return dotNotationToObjectUpdate(operatorKeys, update)
+}
+
+function dotNotationToObjectUpdate(data, object = {}) {
+    try {
+        for (const key of Object.keys(data)) {
+            let value = data[key]
+            let newObject = object
+            let oldObject = new Object(newObject)
+            let keys = key.replace(/\[(\d+)\]/g, '.$1').split('.');
+
+            if (keys[0].startsWith('$'))
+                var operator = keys.shift()
+
+            let length = keys.length - 1
+            for (let i = 0; i < keys.length; i++) {
+                if (/^\d+$/.test(keys[i]))
+                    keys[i] = parseInt(keys[i]);
+
+                if (length == i) {
+                    // TODO: operator updates
+                    if (operator) {
+                        if (operator === '$rename') {
+                            newObject[value] = newObject[keys[i]]
+                            delete newObject[keys[i]]
+                        } else if (operator === '$delete' || operator === '$unset' || operator === '$slice') {
+                            if (typeof keys[i] === 'number')
+                                newObject.slice(keys[i], 1);
+                            else
+                                delete newObject[keys[i]]
+                        } else if (operator === '$shift') {
+                            newObject[keys[i]].shift();
+                        } else if (operator === '$pop') {
+                            newObject[keys[i]].pop();
+                        } else if (operator === '$addToSet' || operator === '$pull') {
+                            // find matching items and update or delete
+                            key = arrayKey
+                            updates[key] = data[originalKey]
+                        } else if (operator === '$push' || operator === '$splice') {
+                            // TODO: support pushing an array as values
+                            if (typeof keys[i] === 'number' && newObject.length >= keys[i])
+                                newObject.splice(keys[i], 0, value);
+                            else
+                                newObject[keys[i]].push(value);
+                        } else if (operator === '$inc') {
+                            newObject[keys[i]] += value
+                        }
+                    } else if (value === undefined) {
+                        if (typeof keys[i] === 'number')
+                            newObject.slice(keys[i], 1);
+                        else
+                            delete newObject[keys[i]]
+                    } else
+                        newObject[keys[i]] = value;
+                } else {
+                    newObject[keys[i]] = oldObject[keys[i]] || {};
+                    newObject = newObject[keys[i]]
+                    oldObject = oldObject[keys[i]]
+                }
+            }
+        }
+        return object
+    } catch (error) {
+        console.log("Error converting dot notation to object", error);
+        return false;
+    }
 }
 
 function openCursor(objectStore, range, direction) {
@@ -610,24 +740,6 @@ function deleteObject(objectStore, object) {
     });
 }
 
-
-function createUpdate(data, object) {
-    if (data.updateName) {
-        for (let key of Object.keys(data.updateName)) {
-            let val = object[key]
-            delete object[key]
-            object[data.updateName[key]] = val
-        }
-    }
-
-    if (data.deleteName) {
-        for (let key of Object.keys(data.deleteName)) {
-            delete object[key]
-        }
-
-    }
-    return object
-}
 
 function filter(data, object, result) {
     let isMatch = true;
