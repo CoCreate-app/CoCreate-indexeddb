@@ -72,7 +72,7 @@ async function send(data) {
             } else
                 await processDatabase(data, newData, type)
         } else {
-            // TODO: Test all methods and decide where data.request is needed
+            // TODO: Test all methods and decide where data.request is needed in relation to _id
             if (data.request && data.method !== 'update.object' && data.method !== 'create.object')
                 data[type] = data.request
 
@@ -563,6 +563,9 @@ async function processObject(data, newData, database, array, type) {
                             let update = createUpdate(cursor.value, data[type][i], globalOperators)
                             if (update)
                                 result = await put(objectStore, update)
+                            // TODO: if update.$<operator>.someKey[] requires the index of inerted item added to the field name. update.$<operator>.someKey[<index>] 
+                            // TODO: if $addToSet get field name and item if it does not exist. 
+                            // TODO: if $pull get field name and find if item exist and delete.
                         } else if (data.method == 'delete.object') {
                             result = await deleteObject(objectStore, data[type][i])
                         }
@@ -652,8 +655,10 @@ function dotNotationToObjectUpdate(data, object = {}) {
                     keys[i] = parseInt(keys[i]);
 
                 if (length == i) {
-                    // TODO: operator updates
                     if (operator) {
+                        let operators = ['$rename', '$inc', '$push', '$each', '$splice', '$unset', '$delete', '$slice', '$pop', '$shift', '$addToSet', '$pull']
+                        if (!operators.includes(operator))
+                            continue
                         if (operator === '$rename') {
                             newObject[value] = newObject[keys[i]]
                             delete newObject[keys[i]]
@@ -671,11 +676,17 @@ function dotNotationToObjectUpdate(data, object = {}) {
                             key = arrayKey
                             updates[key] = data[originalKey]
                         } else if (operator === '$push' || operator === '$splice') {
-                            // TODO: support pushing an array as values
                             if (typeof keys[i] === 'number' && newObject.length >= keys[i])
                                 newObject.splice(keys[i], 0, value);
                             else
                                 newObject[keys[i]].push(value);
+                        } else if (operator === '$each') {
+                            if (!Array.isArray(value))
+                                value = [value]
+                            if (typeof keys[i] === 'number')
+                                newObject.splice(keys[i], 0, ...value);
+                            else
+                                newObject[keys[i]].push(...value);
                         } else if (operator === '$inc') {
                             newObject[keys[i]] += value
                         }
