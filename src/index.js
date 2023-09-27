@@ -22,7 +22,7 @@
  * For details, visit <https://cocreate.app/licenses/> or contact us at sales@cocreate.app
  */
 
-import { ObjectId, dotNotationToObject, searchData, sortData, queryData } from '@cocreate/utils'
+import { ObjectId, dotNotationToObject, searchData, sortData, queryData, isValidDate } from '@cocreate/utils'
 
 // let status = true;
 let indexedDbFunction
@@ -72,12 +72,10 @@ async function send(data) {
             } else
                 await processDatabase(data, newData, type)
         } else {
-            // TODO: Test all methods and decide where data.request is needed in relation to _id
-            if (data.request && data.method !== 'update.object' && data.method !== 'create.object')
-                data[type] = data.request
+            data[type] = data.request
 
-            if (!data['timeStamp'])
-                data['timeStamp'] = new Date().toISOString()
+            // if (!data['timeStamp'])
+            data['timeStamp'] = new Date(data['timeStamp'])
 
             let databases = data.database;
             if (!Array.isArray(databases))
@@ -116,8 +114,8 @@ const processDatabase = (data, newData, type) => {
         if (data.request)
             data[type] = data.request
 
-        if (!data['timeStamp'])
-            data['timeStamp'] = new Date().toISOString()
+        // if (!data['timeStamp'])
+        data['timeStamp'] = new Date(data['timeStamp'])
 
         if (data.method == 'read.database') {
             indexedDB.databases().then((databases) => {
@@ -537,12 +535,18 @@ async function processObject(data, newData, database, array, type) {
 
                 // handle upsert if cursor returns no value
                 let cursor = await openCursor(objectStore, range, direction)
-                if (!cursor && data.method === 'update.object' && data.upsert) {
+                if (!cursor && data.method === 'update.object' && upsert) {
                     let isMatch = true
                     if (isFilter)
                         isMatch = filter(objectStore, data[type][i], data[type][i])
 
                     if (isMatch !== false) {
+                        try {
+                            data[type][i]._id = ObjectId(data[type][i]._id);
+                        } catch (error) {
+                            data[type][i]._id = ObjectId()
+                        }
+
                         let result = await put(objectStore, data[type][i])
                         newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
                     }
@@ -641,7 +645,7 @@ function createUpdate(update, data, globalOpertors) {
 function dotNotationToObjectUpdate(data, object = {}) {
     try {
         for (const key of Object.keys(data)) {
-            let value = data[key]
+            let value = isValidDate(data[key])
             let newObject = object
             let oldObject = new Object(newObject)
             let keys = key.replace(/\[(\d+)\]/g, '.$1').split('.');
@@ -812,4 +816,4 @@ function errorHandler(data, error, database, array) {
 
 init();
 
-export default { send }
+export default { send, ObjectId }
