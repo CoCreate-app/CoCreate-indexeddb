@@ -567,6 +567,7 @@ async function processObject(data, newData, database, array, type) {
                             let update = createUpdate(cursor.value, data[type][i], globalOperators)
                             if (update)
                                 result = await put(objectStore, update)
+                            // set dotnotation for keys with $operators for items that end in [] to be used by socket.id
                             // TODO: if update.$<operator>.someKey[] requires the index of inerted item added to the field name. update.$<operator>.someKey[<index>] 
                             // TODO: if $addToSet get field name and item if it does not exist. 
                             // TODO: if $pull get field name and find if item exist and delete.
