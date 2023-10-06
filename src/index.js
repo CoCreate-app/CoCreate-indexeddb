@@ -72,10 +72,13 @@ async function send(data) {
             } else
                 await processDatabase(data, newData, type)
         } else {
-            data[type] = data.request
+            if (data.request)
+                data[type] = data.request
 
-            // if (!data['timeStamp'])
-            data['timeStamp'] = new Date(data['timeStamp'])
+            if (!data['timeStamp'])
+                data['timeStamp'] = new Date()
+            else
+                data['timeStamp'] = new Date(data['timeStamp'])
 
             let databases = data.database;
             if (!Array.isArray(databases))
@@ -123,9 +126,9 @@ const processDatabase = (data, newData, type) => {
                     if (data.$filter && data.$filter.query) {
                         let isFilter = queryData(database, data.$filter.query)
                         if (isFilter)
-                            newData.push({ $storage: 'indexeddb', $database: database })
+                            newData.push({ $storage: 'indexeddb', ...database })
                     } else
-                        newData.push({ $storage: 'indexeddb', $database: database })
+                        newData.push({ $storage: 'indexeddb', ...database })
                 }
 
                 resolve()
@@ -437,7 +440,7 @@ async function processObject(data, newData, database, array, type) {
     if (!array || !db)
         throw new Error({ error: "This is an error message.", db, array });
 
-    let transactionType = "readwrite"
+    let transactionType = "readwrite" //test
     if (data.method == 'read.object')
         transactionType = "readonly"
 
