@@ -81,6 +81,8 @@ async function send(data) {
                 data['timeStamp'] = new Date(data['timeStamp'])
 
             let databases = data.database;
+            if (!databases && data.organization_id)
+                databases = [data.organization_id]
             if (!Array.isArray(databases))
                 databases = [databases]
 
@@ -446,15 +448,24 @@ async function processObject(data, newData, database, array, type) {
 
     let transaction = db.transaction([array], transactionType);
     let objectStore = transaction.objectStore(array);
-
+    if (!data[type])
+        data[type] = []
     if (data[type] && !Array.isArray(data[type]))
         data[type] = [data[type]]
 
-    if (isFilter && (!data[type] || !data[type].length))
+    if (isFilter && !data[type].length)
         data[type] = [{}]
 
     let globalOperators = getGlobalOperators(data)
     let upsert = data.upsert
+
+    if (data.$filter) {
+        let count = objectStore.count();
+        count.onsuccess = function () {
+            data.$filter.count = count.result
+        }
+    }
+
     try {
 
         for (let i = 0; i < data[type].length; i++) {
@@ -463,6 +474,9 @@ async function processObject(data, newData, database, array, type) {
             delete data[type][i].$array
 
             if (data.method == 'create.object') {
+                if (data.organization_id)
+                    data[type][i]['organization_id'] = data.organization_id
+
                 if (!data[type][i]._id)
                     data[type][i]['_id'] = ObjectId()
                 data[type][i] = dotNotationToObject(data[type][i])
@@ -473,10 +487,13 @@ async function processObject(data, newData, database, array, type) {
             } else {
                 if (data[type][i].$filter)
                     isFilter = true
-                if (data.organization_id)
-                    data[type][i]['organization_id'] = data.organization_id
+                // if (data.organization_id)
+                //     data[type][i]['organization_id'] = data.organization_id
 
                 if (data.method == 'update.object') {
+                    if (data.organization_id)
+                        data[type][i]['organization_id'] = data.organization_id
+
                     if (data[type][i].$upsert)
                         upsert = data[type][i].$upsert
                     data[type][i]['modified'] = { on: data.timeStamp, by: data.user_id || data.clientId }
@@ -486,10 +503,10 @@ async function processObject(data, newData, database, array, type) {
                 if (data[type][i]._id)
                     range = IDBKeyRange.only(data[type][i]._id);
                 else if (isFilter) {
-                    if (data.$filter || data.object.$filter) {
+                    if (data.object.$filter) {
                         let count = objectStore.count();
                         count.onsuccess = function () {
-                            data.$filter.count = count.result
+                            data.object.$filter.count = count.result
                         }
                     }
 
@@ -532,62 +549,100 @@ async function processObject(data, newData, database, array, type) {
                         if (data.$filter.limit)
                             limit = data.$filter.limit
                         if (limit)
-                            limit = index + limit;
+                            limit = (index || 0) + limit;
                     }
                 }
-
+                let test = 0
                 // handle upsert if cursor returns no value
-                let cursor = await openCursor(objectStore, range, direction)
-                if (!cursor && data.method === 'update.object' && upsert) {
-                    let isMatch = true
-                    if (isFilter)
-                        isMatch = filter(objectStore, data[type][i], data[type][i])
+                let cursor = await openCursor(objectStore, range, direction);
+                if (cursor) {
+                    test += 1;
+                    cursor.continue(); // Continue to the next entry
+                } else {
+                    resolve(test);
+                }
 
-                    if (isMatch !== false) {
-                        try {
-                            data[type][i]._id = ObjectId(data[type][i]._id);
-                        } catch (error) {
-                            data[type][i]._id = ObjectId()
-                        }
+                // while (cursor) {
+                //     if (!data.test)
+                //         data.test = 1
+                //     else
+                //         data.test += 1
 
-                        let result = await put(objectStore, data[type][i])
-                        newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
-                    }
+                //     if (cursor) {
+                //         cursor.continue();
+                //     }
 
-                } else if (cursor) {
-                    let isMatch = true
+                //     // Now you can still access dataToProcess
+                // }
 
-                    if (isFilter)
-                        isMatch = filter(objectStore, data[type][i], cursor.value)
+                // if (!cursor && data.method === 'update.object' && upsert) {
+                //     let isMatch = true
+                //     if (isFilter)
+                //         isMatch = filter(objectStore, data[type][i], data[type][i])
 
-                    if (isMatch !== false) {
-                        let result
-                        if (data.method == 'create.object') {
-                            result = await add(objectStore, data[type][i])
-                        } else if (data.method == 'read.object') {
-                            result = await get(objectStore, data[type][i])
-                        } else if (data.method == 'update.object') {
-                            let update = createUpdate(cursor.value, data[type][i], globalOperators)
-                            if (update)
-                                result = await put(objectStore, update)
-                            // set dotnotation for keys with $operators for items that end in [] to be used by socket.id
-                            // TODO: if update.$<operator>.someKey[] requires the index of inerted item added to the field name. update.$<operator>.someKey[<index>] 
-                            // TODO: if $addToSet get field name and item if it does not exist. 
-                            // TODO: if $pull get field name and find if item exist and delete.
-                        } else if (data.method == 'delete.object') {
-                            result = await deleteObject(objectStore, data[type][i])
-                        }
+                //     if (isMatch !== false) {
+                //         try {
+                //             data[type][i]._id = ObjectId(data[type][i]._id);
+                //         } catch (error) {
+                //             data[type][i]._id = ObjectId()
+                //         }
 
-                        newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
-                    }
+                //         let result = await put(objectStore, data[type][i])
+                //         newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
+                //     }
 
-                    limit && limit == newData.length ? '' : cursor.continue();
+                // } else if (cursor) {
+                //     let value = cursor.value
+                //     let isMatch = true
 
-                } else if (index)
+                //     if (!data.test)
+                //         data.test = 1
+                //     else
+                //         data.test += 1
+
+                //     if (isFilter)
+                //         isMatch = filter(objectStore, data[type][i], value)
+
+                //     if (isMatch !== false) {
+                //         let result
+                //         if (data.method == 'create.object') {
+                //             // result = await add(objectStore, data[type][i])
+                //         } else if (data.method == 'update.object') {
+                //             let update = createUpdate(value, data[type][i], globalOperators)
+                //             if (update)
+                //                 result = await put(objectStore, update)
+                //             // set dotnotation for keys with $operators for items that end in [] to be used by socket.id
+                //             // TODO: if update.$<operator>.someKey[] requires the index of inerted item added to the field name. update.$<operator>.someKey[<index>] 
+                //             // TODO: if $addToSet get field name and item if it does not exist. 
+                //             // TODO: if $pull get field name and find if item exist and delete.
+                //         } else if (data.method == 'delete.object') {
+                //             // result = await deleteObject(objectStore, cursor.value)
+                //             result = value
+                //             // cursor.delete()
+                //         }
+
+                //         newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
+                //     }
+
+                //     if (!limit || limit && limit < newData.length) {
+                //         if (cursor)
+                //             cursor.continue();
+                //     }
+                //     else if (cursor) {
+                //         cursor.close()
+                //     }
+
+                // }
+
+                console.log(test)
+                if (index)
                     newData = newData.slice(index)
+
             }
+
         }
     } catch (error) {
+        console.log(error)
         errorHandler(data, error, database, array)
     }
 
@@ -721,9 +776,26 @@ function dotNotationToObjectUpdate(data, object = {}) {
 
 function openCursor(objectStore, range, direction) {
     return new Promise(async (resolve, reject) => {
-        const request = objectStore.openCursor(range, direction);// next, prev
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error)
+        const request = objectStore.openCursor(range || null, direction);// next, prev
+        // let test = 0
+
+        request.onsuccess = () => {
+            resolve(request.result);
+
+            // let cursor = request.result
+
+            if (cursor) {
+                test += 1;
+                cursor.continue(); // Continue to the next entry
+            } else {
+                resolve(test);
+            }
+
+        }
+
+        request.onerror = () => {
+            reject(request.error)
+        }
     });
 }
 
