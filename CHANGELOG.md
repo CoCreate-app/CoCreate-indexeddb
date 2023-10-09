@@ -1,3 +1,18 @@
+# [1.14.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.13.5...v1.14.0) (2023-10-09)
+
+
+### Bug Fixes
+
+* cursor() iteration bug ([394d1e9](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/394d1e98d56f94b1495aad44a78718d56199b728))
+* data.request and data.timeStamp conditions ([bf28152](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/bf28152bf181ea0ad4552a5d829f5b0c0d87396c))
+
+
+### Features
+
+* $each operator adds each item to an array ([b085764](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/b08576473b25534333d768930d97834fda885ff4))
+* isValidDate imported from utils to check key values for date strings and convert to object ([a822f9b](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/a822f9b97bbb11ab87b0ae47dcd543877b6c1cb4))
+* support update operators similar to mongodb ([dc7bd71](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/dc7bd71c57bcae8ad1760b01ebfe406aec3f8800))
+
 ## [1.13.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.13.4...v1.13.5) (2023-09-18)
 
 
