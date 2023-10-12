@@ -433,9 +433,11 @@ async function processObject(data, newData, database, array, type) {
 
     let arrayExist = db.objectStoreNames.contains(array)
     if (!arrayExist) {
-        if (data.$filter || data.method == 'read.object' && (!data.object || data.object && !data.object.length)) {
+        if (data.method == 'create.object' || data.method == 'update.object') {
             db.close()
             db = await processDatabase({ method: 'get.database', database, array })
+        } else {
+            throw new Error({ error: "array does not exist", array });
         }
     }
 
