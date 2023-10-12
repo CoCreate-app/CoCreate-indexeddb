@@ -703,7 +703,7 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
         request.onsuccess = async () => {
             let cursor = request.result
 
-            if (!cursor && data.method === 'update.object' && upsert) {
+            if (!cursor && data.method === 'update.object' && upsert || !data[type][i]._id && data.method === 'update.object' && upsert) {
                 let isMatch = true
                 if (isFilter)
                     isMatch = filter(objectStore, data[type][i], data[type][i])
