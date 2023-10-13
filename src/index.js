@@ -700,13 +700,18 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
     return new Promise(async (resolve, reject) => {
         const request = objectStore.openCursor(range || null, direction);// next, prev
 
+        let skip
         request.onsuccess = async () => {
             let cursor = request.result
 
-            if (!cursor && data.method === 'update.object' && upsert || !data[type][i]._id && data.method === 'update.object' && upsert) {
+            if (data.method === 'create.object' || data.method === 'update.object' && (!range && upsert || !cursor && upsert)) {
                 let isMatch = true
-                if (isFilter)
-                    isMatch = filter(objectStore, data[type][i], data[type][i])
+                if (isFilter) {
+                    if (cursor)
+                        isMatch = filter(objectStore, data[type][i], data[type][i], cursor.value)
+                    else
+                        isMatch = false
+                }
 
                 if (isMatch !== false) {
                     try {
@@ -715,10 +720,19 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
                         data[type][i]._id = ObjectId()
                     }
 
-                    let result = await put(objectStore, data[type][i])
-                    newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
+                    let result
+                    if (data.method == 'create.object') {
+                        result = await add(objectStore, data[type][i])
+                    } else if (data.method == 'update.object') {
+                        result = await put(objectStore, data[type][i])
+                    }
+
+                    if (result)
+                        newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
+
+                    resolve();
                 }
-            } else if (cursor) {
+            } else if (cursor && !skip) {
                 let isMatch = true
 
                 if (isFilter)
@@ -726,9 +740,10 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
 
                 if (isMatch !== false) {
                     let result = cursor.value
-                    if (data.method == 'create.object') {
-                        result = await add(objectStore, data[type][i])
-                    } else if (data.method == 'update.object') {
+                    // if (data.method == 'create.object') {
+                    //     result = await add(objectStore, data[type][i])
+                    // } else 
+                    if (data.method == 'update.object') {
                         let update = createUpdate(cursor.value, data[type][i], globalOperators)
                         if (update)
                             result = await put(objectStore, update)
@@ -737,6 +752,9 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
                         // TODO: if $addToSet get field name and item if it does not exist. 
                         // TODO: if $pull get field name and find if item exist and delete.
                     } else if (data.method == 'delete.object') {
+                        if (!range && !isFilter)
+                            skip = true
+
                         result = cursor.value
                         cursor.delete()
                     }
@@ -752,6 +770,7 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
             } else {
                 resolve();
             }
+
         }
 
         request.onerror = () => {
