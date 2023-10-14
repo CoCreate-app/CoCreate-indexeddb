@@ -1,3 +1,14 @@
+## [1.14.4](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.14.3...v1.14.4) (2023-10-14)
+
+
+### Bug Fixes
+
+* bump dependencies ([9cb8c0b](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/9cb8c0b4518616d2da792ecc13056a60fca10b43))
+* error handeling if array does exist ([29e92fb](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/29e92fbf8f162cb9ae372d778240e7fb165f7cd7))
+* improved cursor handling ([0a64f78](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/0a64f78b3c51da5548a91650df4c0adb19c023e5))
+* improved handling of cursor conditions ([a141167](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/a141167fe771488183e71dd1bfa3ab38ed00188e))
+* update.object upsert without_id ([740bf7e](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/740bf7e455ee906a114cafa833878822b6fd76cb))
+
 ## [1.14.3](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.14.2...v1.14.3) (2023-10-09)
 
 
