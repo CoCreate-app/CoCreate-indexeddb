@@ -437,7 +437,7 @@ async function processObject(data, newData, database, array, type) {
             db.close()
             db = await processDatabase({ method: 'get.database', database, array })
         } else {
-            throw new Error({ error: "array does not exist", array });
+            return errorHandler(data, "array does not exist", database, array)
         }
     }
 
