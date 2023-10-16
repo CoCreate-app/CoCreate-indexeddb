@@ -1,3 +1,10 @@
+## [1.14.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.14.4...v1.14.5) (2023-10-16)
+
+
+### Bug Fixes
+
+* if array does not exist apply error to log ([fc1e101](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/fc1e101ab0f9b7919bb0c4cff476a03c26191952))
+
 ## [1.14.4](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.14.3...v1.14.4) (2023-10-14)
 
 
