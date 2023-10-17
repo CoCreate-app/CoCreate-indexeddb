@@ -566,7 +566,6 @@ async function processObject(data, newData, database, array, type) {
 
         }
     } catch (error) {
-        console.log(error)
         errorHandler(data, error, database, array)
     }
 
