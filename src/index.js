@@ -86,7 +86,7 @@ async function send(data) {
             if (!Array.isArray(databases))
                 databases = [databases]
 
-            let arrays = data.array;
+            let arrays = data.array || [];
             if (!Array.isArray(arrays))
                 arrays = [arrays]
 
