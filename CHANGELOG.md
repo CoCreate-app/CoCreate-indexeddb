@@ -1,3 +1,10 @@
+## [1.14.6](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.14.5...v1.14.6) (2023-10-21)
+
+
+### Bug Fixes
+
+* array || [] ([f707b45](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/f707b4531551ffcbdfd3f0d96e18a9e1c8106913))
+
 ## [1.14.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.14.4...v1.14.5) (2023-10-16)
 
 
