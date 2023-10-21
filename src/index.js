@@ -595,7 +595,7 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
                     try {
                         data[type][i]._id = ObjectId(data[type][i]._id);
                     } catch (error) {
-                        data[type][i]._id = ObjectId()
+                        data[type][i]._id = ObjectId().toString()
                     }
 
                     let result
