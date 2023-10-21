@@ -480,7 +480,7 @@ async function processObject(data, newData, database, array, type) {
                     data[type][i]['organization_id'] = data.organization_id
 
                 if (!data[type][i]._id)
-                    data[type][i]['_id'] = ObjectId()
+                    data[type][i]['_id'] = ObjectId().toString()
                 data[type][i] = dotNotationToObject(data[type][i])
                 data[type][i]['created'] = { on: data.timeStamp, by: data.user_id || data.clientId }
 
