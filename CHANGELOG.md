@@ -1,3 +1,11 @@
+# [1.15.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.14.6...v1.15.0) (2023-10-22)
+
+
+### Features
+
+* ObjectId() returns an object containg the parts iof the _id along with a toString() function ([5d9212b](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/5d9212ba20fb6b26159471a2c09c10ddde94b4e0))
+* ObjectId() returns an object containg the parts iof the _id along with a toString() function ([d6b8ccd](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/d6b8ccddf073e1bd6e13d76966b1ac3bd083b14d))
+
 ## [1.14.6](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.14.5...v1.14.6) (2023-10-21)
 
 
