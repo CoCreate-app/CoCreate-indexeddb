@@ -104,6 +104,7 @@ async function send(data) {
                 }
             }
         }
+
         return createData(data, newData, type)
 
     } catch (error) {
@@ -163,10 +164,8 @@ const processDatabase = (data, newData, type) => {
 
                 openRequest.onsuccess = function () {
                     let db = openRequest.result;
-                    let dbs = [] // TODO: return an array of dbinstance??
-                    if (data.method == 'update.database') {
-                        // TODO: open a cursor at database array and save each array and object at value
 
+                    if (data.method == 'update.database') {
                         let objectStoreNames = Array.from(db.objectStoreNames)
                         for (let array of objectStoreNames) {
                             let request = array.openCursor();
@@ -188,118 +187,68 @@ const processDatabase = (data, newData, type) => {
 
                         }
 
-                    } else if (data.array && data.array.length) {
-                        let arrays = data.array;
-                        if (!Array.isArray(arrays))
-                            arrays = [arrays]
+                    } else if (data.array) {
+                        db.close()
 
-                        for (let j = 0; j < arrays.length; j++) {
-                            let array = arrays[j]
-                            let arrayExist = db.objectStoreNames.contains(array)
-                            if (!arrayExist || arrays.length == 1 && data.upgrade == true) {
-                                db.close()
+                        let version = dbVersion.get(database) || openRequest.result.version
+                        let request = indexedDB.open(database, Number(version += 1));
+                        dbVersion.set(database, version)
 
-                                let version = dbVersion.get(database) || openRequest.result.version
-                                let request = indexedDB.open(database, Number(version += 1));
-                                dbVersion.set(database, version)
+                        request.onupgradeneeded = function (event) {
+                            const db = event.target.result;
 
-                                request.onupgradeneeded = function () {
-                                    db = request.result;
+                            let arrays = data.array;
+                            if (!Array.isArray(arrays))
+                                arrays = [arrays]
 
-                                    if (!arrayExist) {
-                                        db = request.result;
-                                        try {
-                                            db.createObjectStore(array, { keyPath: '_id', autoIncrement: true });
-                                        } catch (error) {
-                                            errorHandler(data, error, database, array)
-                                        }
+                            for (let j = 0; j < arrays.length; j++) {
+                                if (!db.objectStoreNames.contains(arrays[j])) {
+                                    try {
+                                        db.createObjectStore(arrays[j], { keyPath: '_id', autoIncrement: true });
+                                    } catch (error) {
+                                        errorHandler(data, error, database, arrays[j])
                                     }
-                                };
+                                }
 
-                                request.onsuccess = function () {
-                                    if (databases.length - 1 === i && arrays.length - 1 === j) {
-                                        if (data.method == 'get.database') {
-
-                                            if (data.upgrade == true) {
-                                                request.result.close()
-
-                                                let version = dbVersion.get(database) || openRequest.result.version
-                                                let upgrade = indexedDB.open(database, Number(version += 1));
-                                                dbVersion.set(database, version)
-
-                                                upgrade.onupgradeneeded = function (event) {
-                                                    const db = event.target.result;
-
-                                                    if (data.array && data.indexName) {
-                                                        const transaction = event.target.transaction;
-                                                        const objectStore = transaction.objectStore(data.array);
-                                                        objectStore.createIndex(data.indexName, data.indexName, { unique: false });
-                                                    }
-                                                };
-
-                                                upgrade.onsuccess = function (event) {
-                                                    resolve(event.target.result);
-                                                };
-
-                                            } else {
-                                                resolve(request.result)
-                                            }
-                                        }
-                                        else
-                                            resolve(data)
+                                if (data.indexName) {
+                                    let index = data.indexName;
+                                    if (!Array.isArray(index))
+                                        index = [index]
+                                    for (let k = 0; k < index.length; k++) {
+                                        const transaction = event.target.transaction;
+                                        const objectStore = transaction.objectStore(arrays[j]);
+                                        objectStore.createIndex(index[k], index[k], { unique: data.unique || false });
                                     }
-                                };
-
-                                request.onerror = function () {
-                                    errorHandler(data, request.error, database, array)
-                                    if (databases.length - 1 === i && arrays.length - 1 === j) {
-                                        if (data.method == 'get.database')
-                                            resolve(request)
-                                        else
-                                            resolve(data)
-                                    }
-                                };
-                            } else {
-                                if (databases.length - 1 === i && arrays.length - 1 === j) {
-                                    if (data.method == 'get.database')
-                                        resolve(db)
-                                    else
-                                        resolve(data)
                                 }
                             }
-                        }
-                    } else {
-                        if (databases.length - 1 === i) {
-                            if (data.method == 'get.database') {
+                        };
 
-                                if (data.upgrade == true) {
-                                    db.close()
+                        request.onsuccess = function (event) {
+                            if (databases.length - 1 === i) {
+                                if (data.method == 'get.database')
+                                    resolve(event.target.result)
+                                else
+                                    resolve(data)
+                            }
+                        };
 
-                                    let version = dbVersion.get(database) || openRequest.result.version
-                                    let upgrade = indexedDB.open(database, Number(version += 1));
-                                    dbVersion.set(database, version)
+                        request.onerror = function (event) {
+                            errorHandler(data, event.target.error, database, array)
+                            if (databases.length - 1 === i) {
+                                if (data.method == 'get.database')
+                                    resolve(event.target.result)
+                                else
+                                    resolve(data)
+                            }
+                        };
 
-                                    upgrade.onupgradeneeded = function (event) {
-                                        const db = event.target.result;
-
-                                        if (data.array && data.indexName) {
-                                            const transaction = event.target.transaction;
-                                            const objectStore = transaction.objectStore(data.array);
-                                            objectStore.createIndex(data.indexName, data.indexName, { unique: false });
-                                        }
-                                    };
-
-                                    upgrade.onsuccess = function (event) {
-                                        resolve(event.target.result);
-                                    };
-                                } else
-                                    resolve(db)
-                            } else
-                                resolve(data)
-                        }
+                    } else if (databases.length - 1 === i) {
+                        if (data.method == 'get.database')
+                            resolve(db)
+                        else
+                            resolve(data)
                     }
-
-                }
+                };
 
                 openRequest.onerror = function () {
                     errorHandler(data, openRequest.error, database)
@@ -569,10 +518,8 @@ async function processObject(data, newData, database, array, type) {
                         if (!indexExist) {
                             db.close()
                             db = await processDatabase({ method: 'get.database', database, array, indexName, upgrade: true })
-                            // transaction = db.transaction([array], 'readwrite');
                             objectStore = db.transaction(array, 'readwrite');
                             objectStore = transaction.objectStore(array);
-
                         }
                         objectStore = objectStore.index(indexName);
                     }
@@ -593,7 +540,6 @@ async function processObject(data, newData, database, array, type) {
 
                 if (index)
                     newData = newData.slice(index)
-
             }
 
         }
@@ -643,15 +589,12 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
                             result = await put(objectStore, update)
                     }
 
-
                     if (result)
                         newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
-
-                    resolve();
                 }
+                resolve();
             } else if (cursor) {
                 let isMatch = true
-
                 if (isFilter)
                     isMatch = filter(objectStore, data, data[type][i], cursor.value)
 
@@ -679,6 +622,9 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
                     cursor.continue();
                 } else if (cursor.close) {
                     cursor.close()
+                    resolve();
+                } else {
+                    resolve();
                 }
             } else {
                 resolve();
