@@ -93,7 +93,7 @@ async function send(data) {
             for (let i = 0; i < databases.length; i++) {
                 let database = databases[i]
                 if (type === 'array') {
-                    await processArray(data, newData, database, '', type)
+                    await processArray(data, newData, database, type)
                 } else {
                     for (let j = 0; j < arrays.length; j++) {
                         if (type === 'index')
@@ -104,6 +104,7 @@ async function send(data) {
                 }
             }
         }
+
 
         return createData(data, newData, type)
 
@@ -187,6 +188,13 @@ const processDatabase = (data, newData, type) => {
 
                         }
 
+                    } else if (data.upgrade === true) {
+                        db.close()
+
+                        let version = dbVersion.get(database) || openRequest.result.version
+                        resolve(indexedDB.open(database, Number(version += 1)))
+                        dbVersion.set(database, version)
+
                     } else if (data.array) {
                         db.close()
 
@@ -265,7 +273,6 @@ const processDatabase = (data, newData, type) => {
 
 async function processArray(data, newData, database, type) {
     let db = await processDatabase({ method: 'get.database', database })
-    db.close()
 
     let objectStoreNames = Array.from(db.objectStoreNames)
     if (data.method == 'read.array') {
@@ -281,48 +288,70 @@ async function processArray(data, newData, database, type) {
                 newData.push({ name: objectStoreNames[i], $storage: 'indexeddb', $database: database })
         }
     } else {
-        let arrays
-        if (data.method == 'update.array')
-            arrays = Object.keys(data[type])
-        else
-            arrays = data[type];
-        if (!Array.isArray(arrays))
-            arrays = [arrays]
+        db.close()
 
-        for (let i = 0; i < arrays.length; i++) {
-            let error, array = arrays[i]
+        let request = await processDatabase({ method: 'get.database', database, upgrade: true })
+        await new Promise((resolve) => {
+            request.onupgradeneeded = function (event) {
+                let db = event.target.result
+                let arrays
+                if (data.method == 'update.array')
+                    arrays = Object.keys(data[type])
+                else
+                    arrays = data[type];
+                if (!Array.isArray(arrays))
+                    arrays = [arrays]
 
-            let arrayExist = db.objectStoreNames.contains(array)
-            if (arrayExist && data.method == 'create.array') {
-                error = 'array already exists'
-            } else {
-                if (!arrayExist && data.method == 'update.array')
-                    array = data[type][arrays[i]]
+                for (let i = 0; i < arrays.length; i++) {
+                    let error, array = arrays[i]
 
-                let db = await processDatabase({ method: 'get.database', database, array, upgrade: true })
-                if (arrayExist) {
-                    if (data.method == 'delete.array')
-                        db.result.deleteObjectStore(array)
-                    else if (data.method == 'update.array') {
-                        let transaction = db.transaction;
-                        let objectStore = transaction.objectStore(array);
+                    let arrayExist = db.objectStoreNames.contains(array)
+                    if (arrayExist && data.method == 'create.array') {
+                        error = 'array already exists'
+                    } else if (data.method == 'delete.array') {
+                        if (objectStoreNames.includes(array)) {
+                            db.deleteObjectStore(array);
+                        } else {
+                            error = 'the array does not exist'
+                        }
+                    } else {
+                        if (!arrayExist && data.method == 'update.array')
+                            array = data[type][arrays[i]]
 
-                        if (!objectStoreNames.includes(data[type][arrays[i]]))
-                            array = objectStore.name = data[type][arrays[i]];
-                        else
-                            error = 'An array with the new name already exist'
+                        if (arrayExist) {
+                            if (data.method == 'update.array') {
+                                let transaction = event.target.transaction;
+                                let objectStore = transaction.objectStore(array);
+
+                                if (!objectStoreNames.includes(data[type][arrays[i]]))
+                                    array = objectStore.name = data[type][arrays[i]];
+                                else
+                                    error = 'An array with the new name already exist'
+                            }
+                        } else if (data.method == 'update.array')
+                            error = 'array does not exists'
                     }
-                } else if (data.method == 'update.array')
-                    error = 'array does not exists'
-            }
 
-            db.result.close()
+                    if (!error)
+                        newData.push({ name: array, $storage: 'indexeddb', $database: database, array })
+                    else
+                        errorHandler(data, error, database)
 
-            if (!error)
-                newData.push({ name: array, $storage: 'indexeddb', $database: database })
-            else
-                errorHandler(data, error, database)
-        }
+                }
+            };
+
+            request.onsuccess = function (event) {
+                event.target.result.close()
+                resolve()
+            };
+
+            request.onerror = function (event) {
+                errorHandler(data, event.target.error, database)
+                resolve()
+            };
+
+
+        });
     }
 }
 
