@@ -694,7 +694,8 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
 
 function add(objectStore, object) {
     return new Promise((resolve, reject) => {
-        const request = objectStore.add(object);
+        const store = objectStore.objectStore || objectStore
+        let request = store.add(object);
         request.onsuccess = () => resolve(object);
         request.onerror = () => reject(request.error);
     });
@@ -710,11 +711,8 @@ function get(objectStore, object) {
 
 function put(objectStore, object) {
     return new Promise((resolve, reject) => {
-        let request
-        if (objectStore.objectStore)
-            request = objectStore.objectStore.put(object);
-        else
-            request = objectStore.put(object);
+        const store = objectStore.objectStore || objectStore
+        let request = store.put(object);
 
         request.onsuccess = () => resolve(object);
         request.onerror = () => reject(request.error);
