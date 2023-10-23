@@ -219,17 +219,26 @@ const processDatabase = (data, newData, type) => {
                                 request.onsuccess = function () {
                                     if (databases.length - 1 === i && arrays.length - 1 === j) {
                                         if (data.method == 'get.database') {
-                                            let transaction = request.transaction
 
-                                            if (data.upgrade == true && !transaction) {
+                                            if (data.upgrade == true) {
                                                 request.result.close()
 
                                                 let version = dbVersion.get(database) || openRequest.result.version
                                                 let upgrade = indexedDB.open(database, Number(version += 1));
                                                 dbVersion.set(database, version)
 
-                                                upgrade.onupgradeneeded = function () {
-                                                    resolve(upgrade)
+                                                upgrade.onupgradeneeded = function (event) {
+                                                    const db = event.target.result;
+
+                                                    if (data.array && data.indexName) {
+                                                        const transaction = event.target.transaction;
+                                                        const objectStore = transaction.objectStore(data.array);
+                                                        objectStore.createIndex(data.indexName, data.indexName, { unique: false });
+                                                    }
+                                                };
+
+                                                upgrade.onsuccess = function (event) {
+                                                    resolve(event.target.result);
                                                 };
 
                                             } else {
@@ -262,17 +271,26 @@ const processDatabase = (data, newData, type) => {
                     } else {
                         if (databases.length - 1 === i) {
                             if (data.method == 'get.database') {
-                                let transaction = openRequest.transaction
 
-                                if (data.upgrade == true && !transaction) {
+                                if (data.upgrade == true) {
                                     db.close()
 
                                     let version = dbVersion.get(database) || openRequest.result.version
                                     let upgrade = indexedDB.open(database, Number(version += 1));
                                     dbVersion.set(database, version)
 
-                                    upgrade.onupgradeneeded = function () {
-                                        resolve(upgrade)
+                                    upgrade.onupgradeneeded = function (event) {
+                                        const db = event.target.result;
+
+                                        if (data.array && data.indexName) {
+                                            const transaction = event.target.transaction;
+                                            const objectStore = transaction.objectStore(data.array);
+                                            objectStore.createIndex(data.indexName, data.indexName, { unique: false });
+                                        }
+                                    };
+
+                                    upgrade.onsuccess = function (event) {
+                                        resolve(event.target.result);
                                     };
                                 } else
                                     resolve(db)
@@ -514,33 +532,47 @@ async function processObject(data, newData, database, array, type) {
 
                     let isIndex = false
                     let indexName, direction;
-                    if (data.$filter && data.$filter.sort && data.$filter.sort[0] && data.$filter.sort[0].name) {
-                        indexName = data.$filter.sort[0].name
-                        // if (indexName.includes('-'))
-                        //     isIndex = false
-                        // else
-                        // isIndex = true
+
+                    if (data.$filter) {
+                        if (data.$filter.sort && data.$filter.sort[0] && data.$filter.sort[0].key) {
+                            indexName = data.$filter.sort[0].key
+                            if (indexName.includes('-'))
+                                isIndex = false
+                            else
+                                isIndex = true
+
+                            direction = data.$filter.sort[0].direction
+                            if (direction == 'desc')
+                                direction = 'prev'
+                            else
+                                direction = 'next'
+
+                        } else if (data.$filter.query && data.$filter.query[0] && data.$filter.query[0].key && data.$filter.query[0].index) {
+                            if (data.$filter.query[0].operator === '$eq')
+                                range = IDBKeyRange.only(data.$filter.query[0].value);
+                            else if (data.$filter.query[0].operator === '$gt')
+                                range = IDBKeyRange.lowerBound(data.$filter.query[0].value, true);
+                            else if (data.$filter.query[0].operator === '$lt')
+                                range = IDBKeyRange.upperBound(data.$filter.query[0].value, true);
+
+                            indexName = data.$filter.query[0].key
+                            if (indexName.includes('-'))
+                                isIndex = false
+                            else
+                                isIndex = true
+                        }
                     }
 
                     if (isIndex) {
-                        direction = data.$filter.sort[0].direction
-                        if (direction == 'desc')
-                            direction = 'prev'
-                        else
-                            direction = 'next'
-
                         let indexNames = Array.from(objectStore.indexNames)
                         let indexExist = indexNames.includes(indexName)
                         if (!indexExist) {
                             db.close()
-                            db = await processDatabase({ method: 'get.database', database, upgrade: true })
-                            transaction = db.transaction([array], 'readwrite');
+                            db = await processDatabase({ method: 'get.database', database, array, indexName, upgrade: true })
+                            // transaction = db.transaction([array], 'readwrite');
+                            objectStore = db.transaction(array, 'readwrite');
                             objectStore = transaction.objectStore(array);
-                            try {
-                                objectStore.createIndex(indexName, indexName, { unique: false })
-                            } catch (error) {
-                                // console.log(error)
-                            }
+
                         }
                         objectStore = objectStore.index(indexName);
                     }
@@ -587,13 +619,13 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
                 if (isFilter) {
                     if (cursor)
                         isMatch = filter(objectStore, data[type][i], data[type][i], cursor.value)
-                    else
+                    else if (data.method === 'update.object' && !upsert)
                         isMatch = false
                 }
 
                 if (isMatch !== false) {
                     try {
-                        data[type][i]._id = ObjectId(data[type][i]._id);
+                        data[type][i]._id = ObjectId(data[type][i]._id).toString();
                     } catch (error) {
                         data[type][i]._id = ObjectId().toString()
                     }
@@ -602,8 +634,15 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
                     if (data.method == 'create.object') {
                         result = await add(objectStore, data[type][i])
                     } else if (data.method == 'update.object') {
-                        result = await put(objectStore, data[type][i])
+                        let update
+                        if (cursor)
+                            update = createUpdate(cursor.value, data[type][i], globalOperators)
+                        else
+                            update = createUpdate({}, data[type][i], globalOperators)
+                        if (update)
+                            result = await put(objectStore, update)
                     }
+
 
                     if (result)
                         newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
@@ -638,7 +677,7 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
 
                 if (!limit || limit && limit < newData.length) {
                     cursor.continue();
-                } else {
+                } else if (cursor.close) {
                     cursor.close()
                 }
             } else {
@@ -671,7 +710,12 @@ function get(objectStore, object) {
 
 function put(objectStore, object) {
     return new Promise((resolve, reject) => {
-        const request = objectStore.put(object);
+        let request
+        if (objectStore.objectStore)
+            request = objectStore.objectStore.put(object);
+        else
+            request = objectStore.put(object);
+
         request.onsuccess = () => resolve(object);
         request.onerror = () => reject(request.error);
     });
@@ -725,9 +769,6 @@ function createUpdate(update, data, globalOpertors) {
         operatorKeys = { ...globalOpertors }
 
     Object.keys(data).forEach(key => {
-        if (key === '_id')
-            return
-
         if (key.startsWith('$')) {
             if (!key.includes('.'))
                 for (let oldkey of Object.keys(data[key]))
@@ -800,8 +841,10 @@ function dotNotationToObjectUpdate(data, object = {}) {
                         } else if (operator === '$push' || operator === '$splice') {
                             if (typeof keys[i] === 'number' && newObject.length >= keys[i])
                                 newObject.splice(keys[i], 0, value);
-                            else
+                            else if (newObject[keys[i]])
                                 newObject[keys[i]].push(value);
+                            else
+                                newObject[keys[i]] = [value];
                         } else if (operator === '$each') {
                             if (!Array.isArray(value))
                                 value = [value]
