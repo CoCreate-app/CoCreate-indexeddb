@@ -1,3 +1,17 @@
+# [1.16.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.15.0...v1.16.0) (2023-10-24)
+
+
+### Bug Fixes
+
+* add() handle objectStores that opened index ([0bfebfc](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/0bfebfc55a0ea80c365f21e36e16f6c637aaf133))
+
+
+### Features
+
+* create index if filter.quey.inxex is true ([6d6b134](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/6d6b1348e5176a12322cf39b38d1cc1f0fdc76c6))
+* processDatabase auto upgrade ([0b73644](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/0b73644128f57cc629cba6d93befe71fa617d1be))
+* processDatabase() upgrade true returns event ([26ee1d1](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/26ee1d10400b6a94129d63f1077d318b80940bab))
+
 # [1.15.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.14.6...v1.15.0) (2023-10-22)
 
 
