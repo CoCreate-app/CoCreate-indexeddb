@@ -1,3 +1,10 @@
+## [1.16.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.16.1...v1.16.2) (2023-10-26)
+
+
+### Bug Fixes
+
+* expanded the  try catch ([ab77e43](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/ab77e434f4811832089d63256afb8e678209b4f7))
+
 ## [1.16.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.16.0...v1.16.1) (2023-10-25)
 
 
