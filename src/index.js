@@ -105,7 +105,6 @@ async function send(data) {
             }
         }
 
-
         return createData(data, newData, type)
 
     } catch (error) {
@@ -423,48 +422,48 @@ async function processIndex(data, newData, database, array, type) {
 async function processObject(data, newData, database, array, type) {
     let db = await processDatabase({ method: 'get.database', database })
 
-    let isFilter
-    if (data.$filter && data.$filter.query)
-        isFilter = true
-
-    let arrayExist = db.objectStoreNames.contains(array)
-    if (!arrayExist) {
-        if (data.method == 'create.object' || data.method == 'update.object') {
-            db.close()
-            db = await processDatabase({ method: 'get.database', database, array })
-        } else {
-            return errorHandler(data, "array does not exist", database, array)
-        }
-    }
-
-    if (!array || !db)
-        throw new Error({ error: "This is an error message.", db, array });
-
-    let transactionType = "readwrite" //test
-    if (data.method == 'read.object')
-        transactionType = "readonly"
-
-    let transaction = db.transaction([array], transactionType);
-    let objectStore = transaction.objectStore(array);
-    if (!data[type])
-        data[type] = []
-    if (data[type] && !Array.isArray(data[type]))
-        data[type] = [data[type]]
-
-    if (isFilter && !data[type].length)
-        data[type] = [{}]
-
-    let globalOperators = getGlobalOperators(data)
-    let upsert = data.upsert
-
-    if (data.$filter) {
-        let count = objectStore.count();
-        count.onsuccess = function () {
-            data.$filter.count = count.result
-        }
-    }
-
     try {
+        let isFilter
+        if (data.$filter && data.$filter.query)
+            isFilter = true
+
+        let arrayExist = db.objectStoreNames.contains(array)
+        if (!arrayExist) {
+            if (data.method == 'create.object' || data.method == 'update.object') {
+                db.close()
+                db = await processDatabase({ method: 'get.database', database, array })
+            } else {
+                return errorHandler(data, "array does not exist", database, array)
+            }
+        }
+
+        if (!array || !db)
+            throw new Error({ error: "This is an error message.", db, array });
+
+        if (!data[type])
+            data[type] = []
+        if (data[type] && !Array.isArray(data[type]))
+            data[type] = [data[type]]
+
+        if (isFilter && !data[type].length)
+            data[type] = [{}]
+
+        let transactionType = "readwrite" //test
+        if (data.method == 'read.object')
+            transactionType = "readonly"
+
+        let transaction = db.transaction([array], transactionType);
+        let objectStore = transaction.objectStore(array);
+
+        let globalOperators = getGlobalOperators(data)
+        let upsert = data.upsert
+
+        if (data.$filter) {
+            let count = objectStore.count();
+            count.onsuccess = function () {
+                data.$filter.count = count.result
+            }
+        }
 
         for (let i = 0; i < data[type].length; i++) {
             delete data[type][i].$storage
@@ -572,11 +571,16 @@ async function processObject(data, newData, database, array, type) {
             }
 
         }
+
+        if (db.close)
+            db.close()
+
     } catch (error) {
         errorHandler(data, error, database, array)
-    }
+        if (db.close)
+            db.close()
 
-    db.close()
+    }
 }
 
 function openCursor(objectStore, range, direction, data, newData, isFilter, limit, database, array, upsert, type, i, globalOperators) {
