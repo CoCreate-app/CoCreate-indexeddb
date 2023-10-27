@@ -429,8 +429,8 @@ async function processObject(data, newData, database, array, type) {
 
         let arrayExist = db.objectStoreNames.contains(array)
         if (!arrayExist) {
+            db.close()
             if (data.method == 'create.object' || data.method == 'update.object') {
-                db.close()
                 db = await processDatabase({ method: 'get.database', database, array })
             } else {
                 return errorHandler(data, "array does not exist", database, array)
@@ -448,7 +448,7 @@ async function processObject(data, newData, database, array, type) {
         if (isFilter && !data[type].length)
             data[type] = [{}]
 
-        let transactionType = "readwrite" //test
+        let transactionType = "readwrite"
         if (data.method == 'read.object')
             transactionType = "readonly"
 
@@ -545,8 +545,8 @@ async function processObject(data, newData, database, array, type) {
                         let indexExist = indexNames.includes(indexName)
                         if (!indexExist) {
                             db.close()
-                            db = await processDatabase({ method: 'get.database', database, array, indexName, upgrade: true })
-                            objectStore = db.transaction(array, 'readwrite');
+                            db = await processDatabase({ method: 'get.database', database, array, indexName })
+                            transaction = db.transaction(array, 'readwrite');
                             objectStore = transaction.objectStore(array);
                         }
                         objectStore = objectStore.index(indexName);
