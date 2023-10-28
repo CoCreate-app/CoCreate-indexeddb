@@ -458,13 +458,6 @@ async function processObject(data, newData, database, array, type) {
         let globalOperators = getGlobalOperators(data)
         let upsert = data.upsert
 
-        if (data.$filter) {
-            let count = objectStore.count();
-            count.onsuccess = function () {
-                data.$filter.count = count.result
-            }
-        }
-
         for (let i = 0; i < data[type].length; i++) {
             delete data[type][i].$storage
             delete data[type][i].$database
@@ -484,8 +477,6 @@ async function processObject(data, newData, database, array, type) {
             } else {
                 if (data[type][i].$filter)
                     isFilter = true
-                // if (data.organization_id)
-                //     data[type][i]['organization_id'] = data.organization_id
 
                 if (data.method == 'update.object') {
                     if (data.organization_id)
@@ -493,6 +484,7 @@ async function processObject(data, newData, database, array, type) {
 
                     if (data[type][i].$upsert)
                         upsert = data[type][i].$upsert
+                    // TODO: user_id || clientId shohould be retrieved from CoCreate
                     data[type][i]['modified'] = { on: data.timeStamp, by: data.user_id || data.clientId }
                 }
 
@@ -500,13 +492,6 @@ async function processObject(data, newData, database, array, type) {
                 if (data[type][i]._id)
                     range = IDBKeyRange.only(data[type][i]._id);
                 else if (isFilter) {
-                    if (data.object.$filter) {
-                        let count = objectStore.count();
-                        count.onsuccess = function () {
-                            data.object.$filter.count = count.result
-                        }
-                    }
-
                     let isIndex = false
                     let indexName, direction;
 
@@ -552,14 +537,31 @@ async function processObject(data, newData, database, array, type) {
                         objectStore = objectStore.index(indexName);
                     }
 
+                    let count = objectStore.count();
+                    count.onsuccess = function () {
+                        if (data.$filter)
+                            data.$filter.count = count.result
+                        else if (data.object.$filter)
+                            data.object.$filter.count = count.result
+                    }
+
                     if (data.$filter) {
                         if (data.$filter.index)
                             index = data.$filter.index
                         if (data.$filter.limit)
                             limit = data.$filter.limit
-                        if (limit)
-                            limit = (index || 0) + limit;
                     }
+
+                    if (data[type][i].$filter) {
+                        if (data[type][i].$filter.index)
+                            index = data[type][i].$filter.index
+                        if (data[type][i].$filter.limit)
+                            limit = data[type][i].$filter.limit
+                    }
+
+                    if (limit)
+                        limit = (index || 0) + limit;
+
                 } else if (data.method == 'delete.object' || data.method == 'update.object' && !range && !upsert && !isFilter) {
                     continue
                 }
