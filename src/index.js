@@ -72,9 +72,6 @@ async function send(data) {
             } else
                 await processDatabase(data, newData, type)
         } else {
-            if (data.request)
-                data[type] = data.request
-
             if (!data['timeStamp'])
                 data['timeStamp'] = new Date()
             else
@@ -117,10 +114,7 @@ const processDatabase = (data, newData, type) => {
     return new Promise((resolve, reject) => {
         if (!data)
             data = {}
-        if (data.request)
-            data[type] = data.request
 
-        // if (!data['timeStamp'])
         data['timeStamp'] = new Date(data['timeStamp'])
 
         if (data.method == 'read.database') {
@@ -445,8 +439,9 @@ async function processObject(data, newData, database, array, type) {
         if (data[type] && !Array.isArray(data[type]))
             data[type] = [data[type]]
 
-        if (isFilter && !data[type].length)
-            data[type] = [{}]
+        if ((isFilter && !data[type].length) || data.isFilter)
+            data[type] = [{ isFilter: 'isEmptyObjectFilter' }];
+        // data[type].splice(0, 0, { isFilter: 'isEmptyObjectFilter' });
 
         let transactionType = "readwrite"
         if (data.method == 'read.object')
@@ -470,10 +465,14 @@ async function processObject(data, newData, database, array, type) {
                 if (!data[type][i]._id)
                     data[type][i]['_id'] = ObjectId().toString()
                 data[type][i] = dotNotationToObject(data[type][i])
-                data[type][i]['created'] = { on: data.timeStamp, by: data.user_id || data.clientId }
 
-                let result = await add(objectStore, data[type][i])
-                newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
+                // TODO: user_id || clientId shohould be retrieved from CoCreate
+                data[type][i]['created'] = { on: data.timeStamp, by: data.user_id || data.clientId }
+                data[type][i] = await add(objectStore, data[type][i])
+                data[type][i].$storage = 'indexeddb'
+                data[type][i].$database = database
+                data[type][i].$array = array
+
             } else {
                 if (data[type][i].$filter)
                     isFilter = true
@@ -589,7 +588,7 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
     return new Promise(async (resolve, reject) => {
         const request = objectStore.openCursor(range || null, direction);// next, prev
 
-        let hasUpdated
+        let hasUpdated, matchedLength = 0
         request.onsuccess = async () => {
             let cursor = request.result
 
@@ -613,19 +612,18 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
 
                     let result
                     if (data.method == 'create.object') {
-                        result = await add(objectStore, data[type][i])
+                        data[type][i] = await add(objectStore, data[type][i])
                     } else if (data.method == 'update.object') {
-                        let update
-                        if (cursor)
-                            update = createUpdate(cursor.value, data[type][i], globalOperators)
-                        else
-                            update = createUpdate({}, data[type][i], globalOperators)
+                        let update = createUpdate((cursor && cursor.value) ? cursor.value : {}, data[type][i], globalOperators)
                         if (update)
-                            result = await put(objectStore, update)
+                            data[type][i] = await put(objectStore, update)
                     }
+                    data[type][i].$storage = 'indexeddb'
+                    data[type][i].$database = database
+                    data[type][i].$array = array
 
-                    if (result)
-                        newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
+                    matchedLength++
+
                 }
                 resolve();
             } else if (cursor) {
@@ -650,10 +648,20 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
                         cursor.delete()
                     }
 
-                    newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
+                    if (data[type][i]._id)
+                        data[type][i] = { $storage: 'indexeddb', $database: database, $array: array, ...result }
+                    else {
+                        let object = data[type].find(obj => obj._id && obj._id === result._id)
+                        if (object)
+                            object = { $storage: 'indexeddb', $database: database, $array: array, ...object, ...result }
+                        else
+                            newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
+                    }
+
+                    matchedLength++
                 }
 
-                if (!limit || limit && limit < newData.length) {
+                if (!limit || limit && (limit < newData.length || limit < matchedLength)) {
                     cursor.continue();
                 } else if (cursor.close) {
                     cursor.close()
@@ -661,6 +669,7 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
                 } else {
                     resolve();
                 }
+
             } else {
                 resolve();
             }
@@ -713,15 +722,6 @@ function filter(objectStore, data, object, result) {
     let isMatch = true;
     let filter = data.$filter || object.$filter
     if (filter) {
-        try {
-            let count = objectStore.count();
-            count.onsuccess = function () {
-                filter.count = count.result
-            }
-        } catch (error) {
-            errorHandler(data, error, database, array)
-        }
-
         if (filter.query)
             isMatch = queryData(result, filter.query);
         if (isMatch && filter.search)
@@ -856,18 +856,17 @@ function dotNotationToObjectUpdate(data, object = {}) {
 }
 
 function createData(data, newData, type) {
-    data.request = data[type] || {}
+    // data.request = data[type] || {}
+    if (data[type] && data[type][0] && data[type][0].isFilter === 'isEmptyObjectFilter') {
+        data[type].shift()
+        data.isFilter = true
+    }
+
+    data[type].push(...newData)
 
     if (data.$filter && data.$filter.sort)
-        data[type] = sortData(newData, data.$filter.sort)
-    else
-        data[type] = newData
+        data[type] = sortData(data[type], data.$filter.sort)
 
-    if (data.returnLog) {
-        if (!data.log)
-            data.log = []
-        data.log.push(...data[type])
-    }
 
     return data
 }
