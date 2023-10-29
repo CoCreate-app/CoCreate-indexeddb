@@ -114,6 +114,8 @@ const processDatabase = (data, newData, type) => {
     return new Promise((resolve, reject) => {
         if (!data)
             data = {}
+        if (!data[type])
+            data[type] = []
 
         data['timeStamp'] = new Date(data['timeStamp'])
 
