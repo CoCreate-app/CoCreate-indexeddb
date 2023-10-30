@@ -67,7 +67,7 @@ async function send(data) {
         type = type[type.length - 1];
 
         if (type === 'database') {
-            if (data.method === 'get.database') {
+            if (data.method === 'database.get') {
                 return await processDatabase(data)
             } else
                 await processDatabase(data, newData, type)
@@ -119,7 +119,7 @@ const processDatabase = (data, newData, type) => {
 
         data['timeStamp'] = new Date(data['timeStamp'])
 
-        if (data.method == 'read.database') {
+        if (data.method == 'database.read') {
             indexedDB.databases().then((databases) => {
                 for (let database of databases) {
                     if (data.$filter && data.$filter.query) {
@@ -134,7 +134,7 @@ const processDatabase = (data, newData, type) => {
             })
         } else {
             let databases
-            if (data.method == 'update.database')
+            if (data.method == 'database.update')
                 databases = Object.keys(data.database)
             else
                 databases = data.database;
@@ -145,12 +145,12 @@ const processDatabase = (data, newData, type) => {
             for (let i = 0; i < databases.length; i++) {
                 let openRequest, database = databases[i];
                 switch (data.method) {
-                    case 'get.database':
-                    case 'create.database':
-                    case 'update.database':
+                    case 'database.get':
+                    case 'database.create':
+                    case 'database.update':
                         openRequest = indexedDB.open(database);
                         break;
-                    case 'delete.database':
+                    case 'database.delete':
                         openRequest = indexedDB.deleteprocessDatabase(database);
                         break;
                     default:
@@ -161,7 +161,7 @@ const processDatabase = (data, newData, type) => {
                 openRequest.onsuccess = function () {
                     let db = openRequest.result;
 
-                    if (data.method == 'update.database') {
+                    if (data.method == 'database.update') {
                         let objectStoreNames = Array.from(db.objectStoreNames)
                         for (let array of objectStoreNames) {
                             let request = array.openCursor();
@@ -228,7 +228,7 @@ const processDatabase = (data, newData, type) => {
 
                         request.onsuccess = function (event) {
                             if (databases.length - 1 === i) {
-                                if (data.method == 'get.database')
+                                if (data.method == 'database.get')
                                     resolve(event.target.result)
                                 else
                                     resolve(data)
@@ -238,7 +238,7 @@ const processDatabase = (data, newData, type) => {
                         request.onerror = function (event) {
                             errorHandler(data, event.target.error, database, array)
                             if (databases.length - 1 === i) {
-                                if (data.method == 'get.database')
+                                if (data.method == 'database.get')
                                     resolve(event.target.result)
                                 else
                                     resolve(data)
@@ -246,7 +246,7 @@ const processDatabase = (data, newData, type) => {
                         };
 
                     } else if (databases.length - 1 === i) {
-                        if (data.method == 'get.database')
+                        if (data.method == 'database.get')
                             resolve(db)
                         else
                             resolve(data)
@@ -267,10 +267,10 @@ const processDatabase = (data, newData, type) => {
 }
 
 async function processArray(data, newData, database, type) {
-    let db = await processDatabase({ method: 'get.database', database })
+    let db = await processDatabase({ method: 'database.get', database })
 
     let objectStoreNames = Array.from(db.objectStoreNames)
-    if (data.method == 'read.array') {
+    if (data.method == 'array.read') {
         if (!data[type])
             data[type] = []
 
@@ -285,12 +285,12 @@ async function processArray(data, newData, database, type) {
     } else {
         db.close()
 
-        let request = await processDatabase({ method: 'get.database', database, upgrade: true })
+        let request = await processDatabase({ method: 'database.get', database, upgrade: true })
         await new Promise((resolve) => {
             request.onupgradeneeded = function (event) {
                 let db = event.target.result
                 let arrays
-                if (data.method == 'update.array')
+                if (data.method == 'array.update')
                     arrays = Object.keys(data[type])
                 else
                     arrays = data[type];
@@ -301,20 +301,20 @@ async function processArray(data, newData, database, type) {
                     let error, array = arrays[i]
 
                     let arrayExist = db.objectStoreNames.contains(array)
-                    if (arrayExist && data.method == 'create.array') {
+                    if (arrayExist && data.method == 'array.create') {
                         error = 'array already exists'
-                    } else if (data.method == 'delete.array') {
+                    } else if (data.method == 'array.delete') {
                         if (objectStoreNames.includes(array)) {
                             db.deleteObjectStore(array);
                         } else {
                             error = 'the array does not exist'
                         }
                     } else {
-                        if (!arrayExist && data.method == 'update.array')
+                        if (!arrayExist && data.method == 'array.update')
                             array = data[type][arrays[i]]
 
                         if (arrayExist) {
-                            if (data.method == 'update.array') {
+                            if (data.method == 'array.update') {
                                 let transaction = event.target.transaction;
                                 let objectStore = transaction.objectStore(array);
 
@@ -323,7 +323,7 @@ async function processArray(data, newData, database, type) {
                                 else
                                     error = 'An array with the new name already exist'
                             }
-                        } else if (data.method == 'update.array')
+                        } else if (data.method == 'array.update')
                             error = 'array does not exists'
                     }
 
@@ -351,7 +351,7 @@ async function processArray(data, newData, database, type) {
 }
 
 async function processIndex(data, newData, database, array, type) {
-    let db = await processDatabase({ method: 'get.database', database })
+    let db = await processDatabase({ method: 'database.get', database })
     let arrayExist = db.objectStoreNames.contains(array)
     if (arrayExist) {
         // ToDO: switch here to types
@@ -359,7 +359,7 @@ async function processIndex(data, newData, database, array, type) {
         let objectStore = transaction.objectStore(array);
         let indexNames = Array.from(objectStore.indexNames)
 
-        if (data.method == 'read.index') {
+        if (data.method == 'index.read') {
             for (let i = 0; i < indexNames.length; i++) {
                 let name = indexNames[i]
                 if (data.$filter && data.$filter.query)
@@ -371,7 +371,7 @@ async function processIndex(data, newData, database, array, type) {
         } else {
             db.close()
             let indexes
-            if (data.method == 'update.index')
+            if (data.method == 'index.update')
                 indexes = Object.keys(data[type])
             else
                 indexes = data[type];
@@ -381,20 +381,20 @@ async function processIndex(data, newData, database, array, type) {
 
             for (let i = 0; i < indexes.length; i++) {
                 let error, index = indexes[i]
-                db = await processDatabase({ method: 'get.database', database, upgrade: true })
+                db = await processDatabase({ method: 'database.get', database, upgrade: true })
                 let transaction = db.transaction;
                 let objectStore = transaction.objectStore(array);
                 let indexExist = indexNames.includes(index)
 
-                if (data.method == 'create.index') {
+                if (data.method == 'index.create') {
                     if (!indexExist)
                         objectStore.createIndex(index, index, { unique: false })
                     else
                         error = 'index already exist'
                 } else if (indexExist) {
-                    if (data.method == 'delete.index')
+                    if (data.method == 'index.delete')
                         objectStore.deleteIndex(index)
-                    else if (data.method == 'update.index' && !indexNames.includes(data[type][indexes[i]])) {
+                    else if (data.method == 'index.update' && !indexNames.includes(data[type][indexes[i]])) {
                         if (!indexNames.includes(data[type][indexes[i]])) {
                             let indexObj = objectStore.index(index);
                             index = indexObj.name = data[type][indexes[i]];
@@ -416,7 +416,7 @@ async function processIndex(data, newData, database, array, type) {
 }
 
 async function processObject(data, newData, database, array, type) {
-    let db = await processDatabase({ method: 'get.database', database })
+    let db = await processDatabase({ method: 'database.get', database })
 
     try {
         let isFilter
@@ -426,7 +426,7 @@ async function processObject(data, newData, database, array, type) {
         let arrayExist = db.objectStoreNames.contains(array)
         if (!arrayExist) {
             db.close()
-            if (data.method == 'create.object' || data.method == 'update.object') {
+            if (data.method == 'object.create' || data.method == 'object.update') {
                 db = await processDatabase({ method: 'get.database', database, array })
             } else {
                 return errorHandler(data, "array does not exist", database, array)
@@ -446,7 +446,7 @@ async function processObject(data, newData, database, array, type) {
         // data[type].splice(0, 0, { isFilter: 'isEmptyObjectFilter' });
 
         let transactionType = "readwrite"
-        if (data.method == 'read.object')
+        if (data.method == 'object.read')
             transactionType = "readonly"
 
         let transaction = db.transaction([array], transactionType);
@@ -460,7 +460,7 @@ async function processObject(data, newData, database, array, type) {
             delete data[type][i].$database
             delete data[type][i].$array
 
-            if (data.method == 'create.object') {
+            if (data.method == 'object.create') {
                 if (data.organization_id)
                     data[type][i]['organization_id'] = data.organization_id
 
@@ -479,7 +479,7 @@ async function processObject(data, newData, database, array, type) {
                 if (data[type][i].$filter)
                     isFilter = true
 
-                if (data.method == 'update.object') {
+                if (data.method == 'object.update') {
                     if (data.organization_id)
                         data[type][i]['organization_id'] = data.organization_id
 
@@ -531,7 +531,7 @@ async function processObject(data, newData, database, array, type) {
                         let indexExist = indexNames.includes(indexName)
                         if (!indexExist) {
                             db.close()
-                            db = await processDatabase({ method: 'get.database', database, array, indexName })
+                            db = await processDatabase({ method: 'database.get', database, array, indexName })
                             transaction = db.transaction(array, 'readwrite');
                             objectStore = transaction.objectStore(array);
                         }
@@ -563,7 +563,7 @@ async function processObject(data, newData, database, array, type) {
                     if (limit)
                         limit = (index || 0) + limit;
 
-                } else if (data.method == 'delete.object' || data.method == 'update.object' && !range && !upsert && !isFilter) {
+                } else if (data.method == 'object.delete' || data.method == 'object.update' && !range && !upsert && !isFilter) {
                     continue
                 }
 
@@ -594,14 +594,14 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
         request.onsuccess = async () => {
             let cursor = request.result
 
-            if (data.method === 'create.object'
-                || data.method === 'update.object'
+            if (data.method === 'object.create'
+                || data.method === 'object.update'
                 && (!range && !isFilter && upsert || !cursor && upsert && !hasUpdated)) {
                 let isMatch = true
                 if (isFilter) {
                     if (cursor)
                         isMatch = filter(objectStore, data[type][i], data[type][i], cursor.value)
-                    else if (data.method === 'update.object' && !upsert)
+                    else if (data.method === 'object.update' && !upsert)
                         isMatch = false
                 }
 
@@ -613,9 +613,9 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
                     }
 
                     let result
-                    if (data.method == 'create.object') {
+                    if (data.method == 'object.create') {
                         data[type][i] = await add(objectStore, data[type][i])
-                    } else if (data.method == 'update.object') {
+                    } else if (data.method == 'object.update') {
                         let update = createUpdate((cursor && cursor.value) ? cursor.value : {}, data[type][i], globalOperators)
                         if (update)
                             data[type][i] = await put(objectStore, update)
@@ -636,7 +636,7 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
                 if (isMatch !== false) {
                     let result = cursor.value
 
-                    if (data.method == 'update.object') {
+                    if (data.method == 'object.update') {
                         let update = createUpdate(cursor.value, data[type][i], globalOperators)
                         if (update)
                             result = await put(objectStore, update)
@@ -645,7 +645,7 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
                         // TODO: if update.$<operator>.someKey[] requires the index of inerted item added to the field name. update.$<operator>.someKey[<index>] 
                         // TODO: if $addToSet get field name and item if it does not exist. 
                         // TODO: if $pull get field name and find if item exist and delete.
-                    } else if (data.method == 'delete.object') {
+                    } else if (data.method == 'object.delete') {
                         result = cursor.value
                         cursor.delete()
                     }

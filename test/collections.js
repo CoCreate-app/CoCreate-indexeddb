@@ -1,37 +1,37 @@
-async function testCollections() {
+async function testArrays() {
     if (!('indexedDB' in window)) {
         console.log("This browser doesn't support IndexedDB.");
         return;
     } else {
 
-        let createCollection = await CoCreate.indexeddb.process({
-            method: 'create.array',
-            database: ['testDB', 'testDB1', 'testDB2'],
-            array: ['testCollection', 'testCollection1', 'testCollection2']
+        let createObject = await CoCreate.indexeddb.process({
+            method: 'array.create',
+            database: ['testDatabase', 'testDatabase1', 'testDatabase2'],
+            array: ['testArray', 'testArray1', 'testArray2']
 
         })
-        console.log('createCollection', createCollection)
+        console.log('createObject', createObject)
 
-        let readCollection = await CoCreate.indexeddb.process({
-            method: 'read.array',
-            database: ['testDB', 'testDB1', 'testDB2'],
+        let readObject = await CoCreate.indexeddb.process({
+            method: 'array.read',
+            database: ['testDatabase', 'testDatabase1', 'testDatabase2'],
         })
-        console.log('readCollection', readCollection)
+        console.log('readObject', readObject)
 
-        let updateCollection = await CoCreate.indexeddb.process({
-            method: 'update.array',
-            database: ['testDB', 'testDB1', 'testDB2'],
-            array: { testCollection: 'testCollectionA' }
+        let updateObject = await CoCreate.indexeddb.process({
+            method: 'array.update',
+            database: ['testDatabase', 'testDatabase1', 'testDatabase2'],
+            array: { testArray: 'testArrayA' }
         })
-        console.log('updateCollection', updateCollection)
+        console.log('updateObject', updateObject)
 
 
-        let deleteCollection = await CoCreate.indexeddb.process({
-            method: 'delete.array',
-            database: ['testDB', 'testDB1', 'testDB2'],
-            array: ['testCollectionA', 'testCollection1', 'testCollection2']
+        let deleteObject = await CoCreate.indexeddb.process({
+            method: 'array.delete',
+            database: ['testDatabase', 'testDatabase1', 'testDatabase2'],
+            array: ['testArrayA', 'testArray1', 'testArray2']
         })
-        console.log('deleteCollection', deleteCollection)
+        console.log('deleteObject', deleteObject)
 
     }
 }
