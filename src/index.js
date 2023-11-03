@@ -63,9 +63,7 @@ async function send(data) {
     try {
         let newData = [];
 
-        let type = data.method.split('.');
-        type = type[type.length - 1];
-
+        let type = data.method.split('.')[0];
         if (type === 'database') {
             if (data.method === 'database.get') {
                 return await processDatabase(data)
