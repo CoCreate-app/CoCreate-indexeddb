@@ -115,8 +115,6 @@ const processDatabase = (data, newData, type) => {
         if (!data[type])
             data[type] = []
 
-        data['timeStamp'] = new Date(data['timeStamp'])
-
         if (data.method == 'database.read') {
             indexedDB.databases().then((databases) => {
                 for (let database of databases) {
@@ -425,7 +423,7 @@ async function processObject(data, newData, database, array, type) {
         if (!arrayExist) {
             db.close()
             if (data.method == 'object.create' || data.method == 'object.update') {
-                db = await processDatabase({ method: 'get.database', database, array })
+                db = await processDatabase({ method: 'database.get', database, array })
             } else {
                 return errorHandler(data, "array does not exist", database, array)
             }
