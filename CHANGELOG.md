@@ -1,3 +1,20 @@
+# [1.17.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.16.2...v1.17.0) (2023-11-03)
+
+
+### Bug Fixes
+
+* favicon.ico path ([3ea941e](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/3ea941e1e70879aa171ec3b98a81dc3769ec80f2))
+* get.database updated to database.get ([b8058c6](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/b8058c6bbe5682d9bc7f29775b3f306babcd5108))
+* relocated $filter conditions to after index is open ([349f7ff](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/349f7ff33b08ba0da77a313135523b6ccf3a9b41))
+* transaction bug ([6016c07](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/6016c07c56b8dda63281783e810f4747d6e59d80))
+* update dependencies to the lates versions ([4bcf0b2](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/4bcf0b223a73d8e73aea2083abf37c066f8c1d3d))
+* update method to use object.update etc ([6b47872](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/6b47872704e19f7ba9cab7b544dfbad77aeed377))
+
+
+### Features
+
+* morph data[type] so the object can be synced across multiple storage, database, array ([8d3afb4](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/8d3afb487ab4d4709c8bcc2ded6bf8d2ffaa0085))
+
 ## [1.16.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.16.1...v1.16.2) (2023-10-26)
 
 
