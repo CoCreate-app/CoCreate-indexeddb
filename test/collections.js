@@ -4,7 +4,7 @@ async function testArrays() {
         return;
     } else {
 
-        let createObject = await CoCreate.indexeddb.process({
+        let createObject = await Coindex.createeddb.process({
             method: 'array.create',
             database: ['testDatabase', 'testDatabase1', 'testDatabase2'],
             array: ['testArray', 'testArray1', 'testArray2']
@@ -12,13 +12,13 @@ async function testArrays() {
         })
         console.log('createObject', createObject)
 
-        let readObject = await CoCreate.indexeddb.process({
+        let readObject = await Coindex.createeddb.process({
             method: 'array.read',
             database: ['testDatabase', 'testDatabase1', 'testDatabase2'],
         })
         console.log('readObject', readObject)
 
-        let updateObject = await CoCreate.indexeddb.process({
+        let updateObject = await Coindex.createeddb.process({
             method: 'array.update',
             database: ['testDatabase', 'testDatabase1', 'testDatabase2'],
             array: { testArray: 'testArrayA' }
@@ -26,7 +26,7 @@ async function testArrays() {
         console.log('updateObject', updateObject)
 
 
-        let deleteObject = await CoCreate.indexeddb.process({
+        let deleteObject = await Coindex.createeddb.process({
             method: 'array.delete',
             database: ['testDatabase', 'testDatabase1', 'testDatabase2'],
             array: ['testArrayA', 'testArray1', 'testArray2']

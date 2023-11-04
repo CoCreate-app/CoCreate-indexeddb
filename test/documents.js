@@ -4,7 +4,7 @@ async function testDocuments() {
         return;
     } else {
 
-        let createObject = await CoCreate.indexeddb.process({
+        let createObject = await Coindex.createeddb.process({
             method: 'object.create',
             database: ['testDatabase', 'testDatabase1', 'testDatabase2'],
             array: ['testArray', 'testArray1', 'testArray2'],
@@ -18,7 +18,7 @@ async function testDocuments() {
         console.log('createObject', createObject)
         let _id = createObject.object[0]._id
 
-        let readObject = await CoCreate.indexeddb.process({
+        let readObject = await Coindex.createeddb.process({
             method: 'object.read',
             database: ['testDatabase', 'testDatabase1', 'testDatabase2'],
             array: ['testArray', 'testArray1', 'testArray2'],
@@ -29,7 +29,7 @@ async function testDocuments() {
         })
         console.log('readObject', readObject)
 
-        let updateObject = await CoCreate.indexeddb.process({
+        let updateObject = await Coindex.createeddb.process({
             method: 'object.update',
             database: ['testDatabase', 'testDatabase1', 'testDatabase2'],
             array: ['testArray', 'testArray1', 'testArray2'],
@@ -43,7 +43,7 @@ async function testDocuments() {
         console.log('updateObject', updateObject)
 
 
-        let deleteObject = await CoCreate.indexeddb.process({
+        let deleteObject = await Coindex.createeddb.process({
             method: 'object.delete',
             database: ['testDatabase', 'testDatabase1', 'testDatabase2'],
             array: ['testArray', 'testArray1', 'testArray2'],
@@ -60,7 +60,7 @@ async function testDocuments() {
         })
         console.log('deleteObject', deleteObject)
 
-        // let deleteDatabase = await CoCreate.indexeddb.deleteDatabase({
+        // let deleteDatabase = await Coindex.createeddb.deleteDatabase({
         //     database: ['testDatabase', 'testDatabase1', 'testDatabase2'],
         // })
         // console.log('deleteDatabase', deleteDatabase)
