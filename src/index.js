@@ -22,9 +22,8 @@
  * For details, visit <https://cocreate.app/licenses/> or contact us at sales@cocreate.app
  */
 
-import { ObjectId, dotNotationToObject, searchData, sortData, queryData, isValidDate } from '@cocreate/utils'
+import { ObjectId, dotNotationToObject, searchData, sortData, queryData } from '@cocreate/utils'
 
-// let status = true;
 let indexedDbFunction
 
 function init() {
@@ -71,9 +70,7 @@ async function send(data) {
                 await processDatabase(data, newData, type)
         } else {
             if (!data['timeStamp'])
-                data['timeStamp'] = new Date()
-            else
-                data['timeStamp'] = new Date(data['timeStamp'])
+                data['timeStamp'] = new Date().toISOString();
 
             let databases = data.database;
             if (!databases && data.organization_id)
@@ -415,6 +412,11 @@ async function processObject(data, newData, database, array, type) {
     let db = await processDatabase({ method: 'database.get', database })
 
     try {
+        if (!data[type])
+            data[type] = []
+        if (data[type] && !Array.isArray(data[type]))
+            data[type] = [data[type]]
+
         let isFilter
         if (data.$filter && data.$filter.query)
             isFilter = true
@@ -432,10 +434,6 @@ async function processObject(data, newData, database, array, type) {
         if (!array || !db)
             throw new Error({ error: "This is an error message.", db, array });
 
-        if (!data[type])
-            data[type] = []
-        if (data[type] && !Array.isArray(data[type]))
-            data[type] = [data[type]]
 
         if ((isFilter && !data[type].length) || data.isFilter)
             data[type] = [{ isFilter: 'isEmptyObjectFilter' }];
@@ -482,7 +480,8 @@ async function processObject(data, newData, database, array, type) {
                     if (data[type][i].$upsert)
                         upsert = data[type][i].$upsert
                     // TODO: user_id || clientId shohould be retrieved from CoCreate
-                    data[type][i]['modified'] = { on: data.timeStamp, by: data.user_id || data.clientId }
+                    if (!data[type][i].modified)
+                        data[type][i].modified = { on: data.timeStamp, by: data.user_id || data.clientId }
                 }
 
                 let index = 0, limit, range, direction
@@ -781,7 +780,6 @@ function createUpdate(update, data, globalOpertors) {
 function dotNotationToObjectUpdate(data, object = {}) {
     try {
         for (const key of Object.keys(data)) {
-            let value = isValidDate(data[key])
             let newObject = object
             let oldObject = new Object(newObject)
             let keys = key.replace(/\[(\d+)\]/g, '.$1').split('.');
