@@ -118,9 +118,9 @@ const processDatabase = (data, newData, type) => {
                     if (data.$filter && data.$filter.query) {
                         let isFilter = queryData(database, data.$filter.query)
                         if (isFilter)
-                            newData.push({ $storage: 'indexeddb', ...database })
+                            newData.push({ $storage: ['indexeddb'], ...database })
                     } else
-                        newData.push({ $storage: 'indexeddb', ...database })
+                        newData.push({ $storage: ['indexeddb'], ...database })
                 }
 
                 resolve()
@@ -271,9 +271,9 @@ async function processArray(data, newData, database, type) {
             if (data.$filter && data.$filter.query) {
                 let isFilter = queryData({ name: objectStoreNames[i] }, data.$filter.query)
                 if (isFilter)
-                    newData.push({ name: objectStoreNames, $storage: 'indexeddb', $database: database })
+                    newData.push({ name: objectStoreNames, $storage: ['indexeddb'], $database: [database] })
             } else
-                newData.push({ name: objectStoreNames[i], $storage: 'indexeddb', $database: database })
+                newData.push({ name: objectStoreNames[i], $storage: ['indexeddb'], $database: [database] })
         }
     } else {
         db.close()
@@ -321,7 +321,7 @@ async function processArray(data, newData, database, type) {
                     }
 
                     if (!error)
-                        newData.push({ name: array, $storage: 'indexeddb', $database: database, array })
+                        newData.push({ name: array, $storage: ['indexeddb'], $database: [database] })
                     else
                         errorHandler(data, error, database)
 
@@ -358,7 +358,7 @@ async function processIndex(data, newData, database, array, type) {
                 if (data.$filter && data.$filter.query)
                     if (!(queryData({ name }, data.$filter.query))) continue
 
-                newData.push({ name, $storage: 'indexeddb', $database: database, $array: array })
+                newData.push({ name, $storage: ['indexeddb'], $database: [database], $array: [array] })
             }
             db.close()
         } else {
@@ -395,10 +395,10 @@ async function processIndex(data, newData, database, array, type) {
                             error = 'new index name already exist'
                     }
                 } else
-                    error = 'index does not exist'
+                    error = 'index does not exist';
 
                 if (!error)
-                    newData.push({ name: index, $storage: 'indexeddb', $database: database, $array: array })
+                    newData.push({ name: index, $storage: ['indexeddb'], $database: [database], $array: [array] })
                 else
                     errorHandler(data, error, database, array)
 
@@ -450,6 +450,8 @@ async function processObject(data, newData, database, array, type) {
         let upsert = data.upsert
 
         for (let i = 0; i < data[type].length; i++) {
+            const reference = { $storage: ['indexeddb'], $database: [database], $array: [array] }
+
             delete data[type][i].$storage
             delete data[type][i].$database
             delete data[type][i].$array
@@ -465,9 +467,7 @@ async function processObject(data, newData, database, array, type) {
                 // TODO: user_id || clientId shohould be retrieved from CoCreate
                 data[type][i]['created'] = { on: data.timeStamp, by: data.user_id || data.clientId }
                 data[type][i] = await add(objectStore, data[type][i])
-                data[type][i].$storage = 'indexeddb'
-                data[type][i].$database = database
-                data[type][i].$array = array
+                data[type][i] = { ...reference, ...data[type][i] }
 
             } else {
                 if (data[type][i].$filter)
@@ -562,7 +562,7 @@ async function processObject(data, newData, database, array, type) {
                     continue
                 }
 
-                await openCursor(objectStore, range, direction, data, newData, isFilter, limit, database, array, upsert, type, i, globalOperators);
+                await openCursor(objectStore, range, direction, data, newData, isFilter, limit, database, array, upsert, type, i, globalOperators, reference);
 
                 if (index)
                     newData = newData.slice(index)
@@ -581,7 +581,7 @@ async function processObject(data, newData, database, array, type) {
     }
 }
 
-function openCursor(objectStore, range, direction, data, newData, isFilter, limit, database, array, upsert, type, i, globalOperators) {
+function openCursor(objectStore, range, direction, data, newData, isFilter, limit, database, array, upsert, type, i, globalOperators, reference) {
     return new Promise(async (resolve, reject) => {
         const request = objectStore.openCursor(range || null, direction);// next, prev
 
@@ -615,9 +615,7 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
                         if (update)
                             data[type][i] = await put(objectStore, update)
                     }
-                    data[type][i].$storage = 'indexeddb'
-                    data[type][i].$database = database
-                    data[type][i].$array = array
+                    data[type][i] = { ...reference, ...data[type][i] }
 
                     matchedLength++
 
@@ -646,13 +644,13 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
                     }
 
                     if (data[type][i]._id)
-                        data[type][i] = { $storage: 'indexeddb', $database: database, $array: array, ...result }
+                        data[type][i] = { ...reference, ...result }
                     else {
                         let object = data[type].find(obj => obj._id && obj._id === result._id)
                         if (object)
-                            object = { $storage: 'indexeddb', $database: database, $array: array, ...object, ...result }
+                            object = { ...reference, ...object, ...result }
                         else
-                            newData.push({ $storage: 'indexeddb', $database: database, $array: array, ...result })
+                            newData.push({ ...reference, ...result })
                     }
 
                     matchedLength++
