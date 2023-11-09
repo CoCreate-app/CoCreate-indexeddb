@@ -1,3 +1,13 @@
+## [1.17.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.17.0...v1.17.1) (2023-11-09)
+
+
+### Bug Fixes
+
+* $storage, $database, $array are arrays ([b6374f8](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/b6374f84e4ff13751cc357bbba8d4c883380083f))
+* meta name typo ([da33128](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/da331289589ea151f78ce25942e18e133f6b87f1))
+* update crud methods ([c74ed56](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/c74ed5688bd9a25f4eb524064b799ad678bdcc57))
+* updated date to ISO format with UTC timezone ([8bcc59a](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/8bcc59a7d715937c6de139dcb12951a686aa1cff))
+
 # [1.17.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.16.2...v1.17.0) (2023-11-03)
 
 
