@@ -418,7 +418,7 @@ async function processObject(data, newData, database, array, type) {
             data[type] = [data[type]]
 
         let isFilter
-        if (data.$filter && data.$filter.query)
+        if (data.$filter)
             isFilter = true
 
         let arrayExist = db.objectStoreNames.contains(array)
