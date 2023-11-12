@@ -858,9 +858,11 @@ function createData(data, newData, type) {
 
     data[type].push(...newData)
 
-    if (data.$filter && data.$filter.sort)
-        data[type] = sortData(data[type], data.$filter.sort)
-
+    if (data.$filter) {
+        if (data.$filter.sort)
+            data[type] = sortData(data[type], data.$filter.sort)
+        data.$filter.index += data[type].length
+    }
 
     return data
 }
