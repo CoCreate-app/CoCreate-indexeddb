@@ -656,7 +656,7 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
                     matchedLength++
                 }
 
-                if (!limit || limit && (limit < newData.length || limit < matchedLength)) {
+                if (!limit || limit && (limit > newData.length || limit > matchedLength)) {
                     cursor.continue();
                 } else if (cursor.close) {
                     cursor.close()
