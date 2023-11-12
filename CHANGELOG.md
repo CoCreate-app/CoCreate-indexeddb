@@ -1,3 +1,13 @@
+## [1.17.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.17.1...v1.17.2) (2023-11-12)
+
+
+### Bug Fixes
+
+* bump dependencies for latest features ([df1aa3a](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/df1aa3a5053e068f6f47a66d1d388314c202607c))
+* isFIlter condition ([9fcbb15](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/9fcbb158dad0c8fab4bc09c6701ad2d0c868ab03))
+* limit handling ([43fe9c6](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/43fe9c6d2029aa1486488c944c51c9ba342e4ebf))
+* set $filter.index ([ab739a5](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/ab739a5b41fe5a2ab10e799f328650e9f14a46d1))
+
 ## [1.17.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.17.0...v1.17.1) (2023-11-09)
 
 
