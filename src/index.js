@@ -867,6 +867,8 @@ function createData(data, newData, type) {
     if (data.$filter) {
         if (data.$filter.sort)
             data[type] = sortData(data[type], data.$filter.sort)
+
+        data.$filter.startingIndex = data.$filter.index
         data.$filter.index += data[type].length
     }
 
