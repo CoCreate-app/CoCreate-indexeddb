@@ -633,7 +633,8 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, inde
                         if (data.method == 'object.update') {
                             let update = createUpdate(cursor.value, data[type][i], globalOperators)
                             if (update)
-                                result = await put(objectStore, update)
+                                result = await cursorUpdate(cursor, update)
+                            // result = cursor.update(update)
                             hasUpdated = true
                             // set dotnotation for keys with $operators for items that end in [] to be used by socket.id
                             // TODO: if update.$<operator>.someKey[] requires the index of inerted item added to the field name. update.$<operator>.someKey[<index>] 
@@ -705,6 +706,14 @@ function deleteObject(objectStore, object) {
     return new Promise((resolve, reject) => {
         const request = objectStore.delete(object._id);
         request.onsuccess = () => resolve(object);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+function cursorUpdate(cursor, update) {
+    return new Promise((resolve, reject) => {
+        const request = cursor.update(update)
+        request.onsuccess = () => resolve(request.source.value);
         request.onerror = () => reject(request.error);
     });
 }
