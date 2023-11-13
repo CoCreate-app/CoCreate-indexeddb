@@ -555,14 +555,11 @@ async function processObject(data, newData, database, array, type) {
                             limit = data[type][i].$filter.limit
                     }
 
-                    if (limit)
-                        limit = (index || 0) + limit;
-
                 } else if (data.method == 'object.delete' || data.method == 'object.update' && !range && !upsert && !isFilter) {
                     continue
                 }
 
-                await openCursor(objectStore, range, direction, data, newData, isFilter, limit, database, array, upsert, type, i, globalOperators, reference);
+                await openCursor(objectStore, range, direction, data, newData, isFilter, index, limit, database, array, upsert, type, i, globalOperators, reference);
 
                 if (index)
                     newData = newData.slice(index)
@@ -581,11 +578,11 @@ async function processObject(data, newData, database, array, type) {
     }
 }
 
-function openCursor(objectStore, range, direction, data, newData, isFilter, limit, database, array, upsert, type, i, globalOperators, reference) {
+function openCursor(objectStore, range, direction, data, newData, isFilter, index, limit, database, array, upsert, type, i, globalOperators, reference) {
     return new Promise(async (resolve, reject) => {
         const request = objectStore.openCursor(range || null, direction);// next, prev
 
-        let hasUpdated, matchedLength = 0
+        let hasUpdated, matchedLength = 0, hasSkipped
         request.onsuccess = async () => {
             let cursor = request.result
 
@@ -622,47 +619,47 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, limi
                 }
                 resolve();
             } else if (cursor) {
-                let isMatch = true
-                if (isFilter)
-                    isMatch = filter(objectStore, data, data[type][i], cursor.value)
-
-                if (isMatch !== false) {
-                    let result = cursor.value
-
-                    if (data.method == 'object.update') {
-                        let update = createUpdate(cursor.value, data[type][i], globalOperators)
-                        if (update)
-                            result = await put(objectStore, update)
-                        hasUpdated = true
-                        // set dotnotation for keys with $operators for items that end in [] to be used by socket.id
-                        // TODO: if update.$<operator>.someKey[] requires the index of inerted item added to the field name. update.$<operator>.someKey[<index>] 
-                        // TODO: if $addToSet get field name and item if it does not exist. 
-                        // TODO: if $pull get field name and find if item exist and delete.
-                    } else if (data.method == 'object.delete') {
-                        result = cursor.value
-                        cursor.delete()
-                    }
-
-                    if (data[type][i]._id)
-                        data[type][i] = { ...reference, ...result }
-                    else {
-                        let object = data[type].find(obj => obj._id && obj._id === result._id)
-                        if (object)
-                            object = { ...reference, ...object, ...result }
-                        else
-                            newData.push({ ...reference, ...result })
-                    }
-
-                    matchedLength++
-                }
-
-                if (!limit || limit && (limit > newData.length || limit > matchedLength)) {
-                    cursor.continue();
-                } else if (cursor.close) {
-                    cursor.close()
-                    resolve();
+                if (index && !hasSkipped) {
+                    cursor.advance(index);
+                    hasSkipped = true;
                 } else {
-                    resolve();
+                    let isMatch = true
+                    if (isFilter)
+                        isMatch = filter(objectStore, data, data[type][i], cursor.value)
+
+                    if (isMatch !== false) {
+                        let result = cursor.value
+
+                        if (data.method == 'object.update') {
+                            let update = createUpdate(cursor.value, data[type][i], globalOperators)
+                            if (update)
+                                result = await put(objectStore, update)
+                            hasUpdated = true
+                            // set dotnotation for keys with $operators for items that end in [] to be used by socket.id
+                            // TODO: if update.$<operator>.someKey[] requires the index of inerted item added to the field name. update.$<operator>.someKey[<index>] 
+                            // TODO: if $addToSet get field name and item if it does not exist. 
+                            // TODO: if $pull get field name and find if item exist and delete.
+                        } else if (data.method == 'object.delete') {
+                            result = cursor.value
+                            cursor.delete()
+                        }
+
+                        if (data[type][i]._id)
+                            data[type][i] = { ...reference, ...result }
+                        else {
+                            let object = data[type].find(obj => obj._id && obj._id === result._id)
+                            if (object)
+                                object = { ...reference, ...object, ...result }
+                            else
+                                newData.push({ ...reference, ...result })
+                        }
+                    }
+
+                    if (!limit || limit && (limit > newData.length + matchedLength)) {
+                        cursor.continue();
+                    } else {
+                        resolve();
+                    }
                 }
 
             } else {
@@ -781,7 +778,7 @@ function dotNotationToObjectUpdate(data, object = {}) {
             let newObject = object
             let oldObject = new Object(newObject)
             let keys = key.replace(/\[(\d+)\]/g, '.$1').split('.');
-
+            let value = data[key]
             if (keys[0].startsWith('$'))
                 var operator = keys.shift()
 
