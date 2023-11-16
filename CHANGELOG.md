@@ -1,3 +1,16 @@
+# [1.18.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.17.2...v1.18.0) (2023-11-16)
+
+
+### Bug Fixes
+
+* set $filter.startingIndex ([18888cf](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/18888cf2cbfd8e8264a26f5274f2fb781c779308))
+
+
+### Features
+
+* cursor.advance(index) ([699d83f](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/699d83ffb4f5630fdbfa73b73b337fd0f08290a4))
+* cursorUpdate ([5873caf](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/5873caf4d7fdc6da860e7c2ed01fb7d75f28143f))
+
 ## [1.17.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.17.1...v1.17.2) (2023-11-12)
 
 
