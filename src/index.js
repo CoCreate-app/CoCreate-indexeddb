@@ -414,7 +414,9 @@ async function processObject(data, newData, database, array, type) {
     try {
         if (!data[type])
             data[type] = []
-        if (data[type] && !Array.isArray(data[type]))
+        else if (typeof data[type] === 'string')
+            data[type] = [{ _id: data[type] }]
+        else if (!Array.isArray(data[type]))
             data[type] = [data[type]]
 
         let isFilter
