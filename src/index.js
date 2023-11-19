@@ -790,8 +790,9 @@ function dotNotationToObjectUpdate(data, object = {}) {
             let oldObject = new Object(newObject)
             let keys = key.replace(/\[(\d+)\]/g, '.$1').split('.');
             let value = data[key]
+            let operator
             if (keys[0].startsWith('$'))
-                var operator = keys.shift()
+                operator = keys.shift()
 
             let length = keys.length - 1
             for (let i = 0; i < keys.length; i++) {
