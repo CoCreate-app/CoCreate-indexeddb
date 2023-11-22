@@ -1,3 +1,11 @@
+## [1.19.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.19.0...v1.19.1) (2023-11-22)
+
+
+### Bug Fixes
+
+* handle object value string ([bf09800](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/bf098005b0d9e494a6a5bb8941774516c3163c0b))
+* let operator ([9e577f7](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/9e577f73bc57f283eb813a4b936d0c1d795fec44))
+
 # [1.19.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.18.0...v1.19.0) (2023-11-19)
 
 
