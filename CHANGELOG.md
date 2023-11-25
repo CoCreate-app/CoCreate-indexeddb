@@ -1,3 +1,15 @@
+# [1.21.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.20.0...v1.21.0) (2023-11-25)
+
+
+### Bug Fixes
+
+* update licensing details ([3ee7ade](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/3ee7ade586f359e23833f71fff9e7eb6cc296f49))
+
+
+### Features
+
+* upgrade dependencies for latest features and fixes ([50d3529](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/50d3529ba30bdb9f0b4c5d0c01ef4a3f26d7bacb))
+
 # [1.20.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.19.1...v1.20.0) (2023-11-25)
 
 
