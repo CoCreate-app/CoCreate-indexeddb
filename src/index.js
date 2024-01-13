@@ -22,7 +22,7 @@
  * For details, visit <https://cocreate.app/licenses/> or contact us at sales@cocreate.app
  */
 
-import { ObjectId, dotNotationToObject, searchData, sortData, queryData } from '@cocreate/utils'
+import { ObjectId, dotNotationToObject, searchData, sortData, queryData, query } from '@cocreate/utils'
 
 let indexedDbFunction
 
