@@ -1,3 +1,10 @@
+## [1.21.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.21.0...v1.21.1) (2024-01-17)
+
+
+### Bug Fixes
+
+* update to support new query system ([80e1134](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/80e1134b2db56e6673e5ff8af370638c0d0fb9af))
+
 # [1.21.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.20.0...v1.21.0) (2023-11-25)
 
 
