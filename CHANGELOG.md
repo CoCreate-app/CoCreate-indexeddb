@@ -1,3 +1,10 @@
+## [1.21.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.21.1...v1.21.2) (2024-02-05)
+
+
+### Bug Fixes
+
+* Removed https://cdn.cocreate.app/latest/CoCreate.min.css ([8489475](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/848947543c0770ce7402183b07902e7465d23775))
+
 ## [1.21.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.21.0...v1.21.1) (2024-01-17)
 
 
