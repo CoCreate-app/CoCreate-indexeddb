@@ -22,7 +22,7 @@
  * For details, visit <https://cocreate.app/licenses/> or contact us at sales@cocreate.app
  */
 
-import { ObjectId, dotNotationToObject, searchData, sortData, queryData, query } from '@cocreate/utils'
+import { ObjectId, dotNotationToObject, searchData, sortData, queryData, isEqualArray, isEqualObject } from '@cocreate/utils'
 
 let indexedDbFunction
 
@@ -816,10 +816,18 @@ function dotNotationToObjectUpdate(data, object = {}) {
                             newObject[keys[i]].shift();
                         } else if (operator === '$pop') {
                             newObject[keys[i]].pop();
-                        } else if (operator === '$addToSet' || operator === '$pull') {
-                            // find matching items and update or delete
-                            key = arrayKey
-                            updates[key] = data[originalKey]
+                        } else if (operator === '$addToSet') {
+                            if (typeof value === 'object') {
+                                // isEqualArray(updates[arrayKey], value)
+                            } else if (!newObject[keys[i]].includes(value)) {
+                                newObject[keys[i]].push(value);
+                            }
+                        } else if (operator === '$pull') {
+                            if (typeof value === 'object') {
+
+                            } else if (newObject[keys[i]].includes(value)) {
+                                newObject[keys[i]] = newObject[keys[i]].filter(item => item !== value)
+                            }
                         } else if (operator === '$push' || operator === '$splice') {
                             if (typeof keys[i] === 'number' && newObject.length >= keys[i])
                                 newObject.splice(keys[i], 0, value);
