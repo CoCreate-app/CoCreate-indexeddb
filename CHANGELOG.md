@@ -1,3 +1,15 @@
+# [1.22.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.21.2...v1.22.0) (2024-02-14)
+
+
+### Bug Fixes
+
+* createUpdate relocated to utils to be accessible by other modues ([af6a85e](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/af6a85e91c28d384ac14ebc97cec096c332e770f))
+
+
+### Features
+
+* update operators $addToSet and $pull ([effc837](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/effc8376e2896ad421026aeec9f8cb2c1284cdeb))
+
 ## [1.21.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.21.1...v1.21.2) (2024-02-05)
 
 
