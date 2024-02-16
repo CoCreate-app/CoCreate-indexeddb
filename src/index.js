@@ -611,8 +611,9 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, inde
                         data[type][i] = await add(objectStore, data[type][i])
                     } else if (data.method == 'object.update') {
                         let update = createUpdate((cursor && cursor.value) ? cursor.value : {}, data[type][i], globalOperators)
-                        if (update)
-                            data[type][i] = await put(objectStore, update)
+                        if (update) {
+                            await put(objectStore, update)
+                        }
                     }
                     data[type][i] = { ...reference, ...data[type][i] }
 
