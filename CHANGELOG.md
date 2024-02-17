@@ -1,3 +1,10 @@
+## [1.22.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.22.0...v1.22.1) (2024-02-17)
+
+
+### Bug Fixes
+
+* update object only returns updated values ([005f9ea](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/005f9ea18d8fb2e15b74c4101c11f8f73bb49f4e))
+
 # [1.22.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.21.2...v1.22.0) (2024-02-14)
 
 
