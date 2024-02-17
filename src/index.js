@@ -636,7 +636,8 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, inde
                         if (data.method == 'object.update') {
                             let update = createUpdate(cursor.value, data[type][i], globalOperators)
                             if (update)
-                                result = await cursorUpdate(cursor, update)
+                                await cursorUpdate(cursor, update)
+                            result = data[type][i]
                             // result = cursor.update(update)
                             hasUpdated = true
                             // set dotnotation for keys with $operators for items that end in [] to be used by socket.id
