@@ -613,6 +613,7 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, inde
                         let update = createUpdate((cursor && cursor.value) ? cursor.value : {}, data[type][i], globalOperators)
                         if (update) {
                             await put(objectStore, update)
+                            data[type][i].$update = update
                         }
                     }
                     data[type][i] = { ...reference, ...data[type][i] }
@@ -638,6 +639,7 @@ function openCursor(objectStore, range, direction, data, newData, isFilter, inde
                             if (update)
                                 await cursorUpdate(cursor, update)
                             result = data[type][i]
+                            result.$update = update
                             // result = cursor.update(update)
                             hasUpdated = true
                             // set dotnotation for keys with $operators for items that end in [] to be used by socket.id
