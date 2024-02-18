@@ -1,3 +1,10 @@
+## [1.22.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.22.1...v1.22.2) (2024-02-18)
+
+
+### Bug Fixes
+
+* update responds with update request not whole document ([1a0f2f0](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/1a0f2f0907aa62e3588621cc7d53260c81eb1c51))
+
 ## [1.22.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.22.0...v1.22.1) (2024-02-17)
 
 
