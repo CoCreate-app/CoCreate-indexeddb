@@ -1,3 +1,10 @@
+## [1.22.3](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.22.2...v1.22.3) (2024-02-20)
+
+
+### Bug Fixes
+
+* $update operator containg updated objects ([8ed0c30](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/8ed0c30a6269d042d82d26b32ab6d363c830e114))
+
 ## [1.22.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.22.1...v1.22.2) (2024-02-18)
 
 
