@@ -1,3 +1,11 @@
+## [1.22.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.22.4...v1.22.5) (2024-06-12)
+
+
+### Bug Fixes
+
+* bump cocreate dependencies ([6b9a2ee](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/6b9a2eeeeda3df9b19cae6922c4ec5f62d6dbf8c))
+* svg icon class ([68668de](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/68668ded773543a0b808f1b1981222bc03fc0ace))
+
 ## [1.22.4](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.22.3...v1.22.4) (2024-04-29)
 
 
