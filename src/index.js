@@ -491,7 +491,7 @@ async function processObject(data, newData, database, array, type) {
                     range = IDBKeyRange.only(data[type][i]._id);
                 else if (isFilter) {
                     let isIndex = false
-                    let indexName, direction;
+                    let indexName;
 
                     if (data.$filter) {
                         if (data.$filter.sort && data.$filter.sort[0] && data.$filter.sort[0].key) {
