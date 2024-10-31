@@ -213,7 +213,8 @@ const processDatabase = (data, newData, type) => {
                                     for (let k = 0; k < index.length; k++) {
                                         const transaction = event.target.transaction;
                                         const objectStore = transaction.objectStore(arrays[j]);
-                                        objectStore.createIndex(index[k], index[k], { unique: data.unique || false });
+                                        if (!objectStore.indexNames.contains(index[k]))
+                                            objectStore.createIndex(index[k], index[k], { unique: data.unique || false });
                                     }
                                 }
                             }
