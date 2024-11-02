@@ -207,15 +207,10 @@ const processDatabase = (data, newData, type) => {
                                 }
 
                                 if (data.indexName) {
-                                    let index = data.indexName;
-                                    if (!Array.isArray(index))
-                                        index = [index]
-                                    for (let k = 0; k < index.length; k++) {
-                                        const transaction = event.target.transaction;
-                                        const objectStore = transaction.objectStore(arrays[j]);
-                                        if (!objectStore.indexNames.contains(index[k]))
-                                            objectStore.createIndex(index[k], index[k], { unique: data.unique || false });
-                                    }
+                                    const transaction = event.target.transaction;
+                                    const objectStore = transaction.objectStore(arrays[j]);
+                                    if (!objectStore.indexNames.contains(data.indexName))
+                                        objectStore.createIndex(data.indexName, data.indexFields, { unique: data.unique || false });
                                 }
                             }
                         };
@@ -437,10 +432,14 @@ async function processObject(data, newData, database, array, type) {
         if (!array || !db)
             throw new Error({ error: "This is an error message.", db, array });
 
-
-        if ((isFilter && !data[type].length) || data.isFilter)
+        let lastItem
+        if ((isFilter && !data[type].length) || data.isFilter) {
+            if (data[type].length)
+                lastItem = data[type][data[type].length - 1];
             data[type] = [{ isFilter: 'isEmptyObjectFilter' }];
-        // data[type].splice(0, 0, { isFilter: 'isEmptyObjectFilter' });
+
+            // data[type].splice(0, 0, { isFilter: 'isEmptyObjectFilter' });
+        }
 
         let transactionType = "readwrite"
         if (data.method == 'object.read')
@@ -488,48 +487,62 @@ async function processObject(data, newData, database, array, type) {
                 }
 
                 let index = 0, limit, range, direction
-                if (data[type][i]._id)
+                if (data[type][i]._id) {
                     range = IDBKeyRange.only(data[type][i]._id);
-                else if (isFilter) {
-                    let isIndex = false
+                } else if (isFilter) {
                     let indexName;
+                    let indexFields;
 
                     if (data.$filter) {
-                        if (data.$filter.sort && data.$filter.sort[0] && data.$filter.sort[0].key) {
-                            indexName = data.$filter.sort[0].key
-                            if (indexName.includes('-'))
-                                isIndex = false
-                            else
-                                isIndex = true
+                        // TODO: requires a more robust sorting thats suports various directions
+                        // Build compound index name from sort keys
+                        if (data.$filter.sort && data.$filter.sort.length > 0) {
+                            // Create a standard index name without _id
+                            let sortKeys = data.$filter.sort.map(sort => sort.key).filter(key => key !== '_id');
+                            indexName = sortKeys.join('_'); // e.g., "createdAt_category"
 
-                            direction = data.$filter.sort[0].direction
-                            if (direction == 'desc')
-                                direction = 'prev'
-                            else
-                                direction = 'next'
+                            // Define compound index fields
+                            indexFields = [...sortKeys];
 
-                        } else if (data.$filter.query && data.$filter.query[0] && data.$filter.query[0].key && data.$filter.query[0].index) {
-                            if (data.$filter.query[0].operator === '$eq')
+                            // Set cursor direction based on the first sort key direction
+                            direction = data.$filter.sort[0].direction === 'desc' ? 'prev' : 'next';
+
+                            // Use last item's values, including _id, to set up the range for pagination
+                            if (indexName && lastItem && lastItem._id) {
+                                indexName += '_id'
+                                indexFields.push('_id')
+                                let lastKeyValues = [...sortKeys.map(key => lastItem[key]), lastItem._id]; // Compound key array with _id
+
+                                // Create IDBKeyRange based on direction and lastKeyValues
+                                if (direction === 'next') {
+                                    range = IDBKeyRange.lowerBound(lastKeyValues, true);
+                                } else {
+                                    range = IDBKeyRange.upperBound(lastKeyValues, true);
+                                }
+                            }
+                        } else if (data.$filter.query && data.$filter.query[0] && data.$filter.query[0].key) {
+                            if (data.$filter.query[0].operator === '$eq') {
                                 range = IDBKeyRange.only(data.$filter.query[0].value);
-                            else if (data.$filter.query[0].operator === '$gt')
+                            } else if (data.$filter.query[0].operator === '$gt') {
                                 range = IDBKeyRange.lowerBound(data.$filter.query[0].value, true);
-                            else if (data.$filter.query[0].operator === '$lt')
+                            } else if (data.$filter.query[0].operator === '$lt') {
                                 range = IDBKeyRange.upperBound(data.$filter.query[0].value, true);
+                            } else if (data.$filter.query[0].operator === '$gte') {
+                                range = IDBKeyRange.lowerBound(data.$filter.query[0].value);
+                            } else if (data.$filter.query[0].operator === '$lte') {
+                                range = IDBKeyRange.upperBound(data.$filter.query[0].value);
+                            }
 
                             indexName = data.$filter.query[0].key
-                            if (indexName.includes('-'))
-                                isIndex = false
-                            else
-                                isIndex = true
                         }
                     }
 
-                    if (isIndex) {
-                        let indexNames = Array.from(objectStore.indexNames)
-                        let indexExist = indexNames.includes(indexName)
-                        if (!indexExist) {
-                            db.close()
-                            db = await processDatabase({ method: 'database.get', database, array, indexName })
+                    if (indexName && !indexName.includes('-')) {
+                        // Check if the compound index exists; create it if not
+                        let indexNames = Array.from(objectStore.indexNames);
+                        if (!indexNames.includes(indexName)) {
+                            db.close();
+                            db = await processDatabase({ method: 'database.get', database, array, indexName, indexFields });
                             transaction = db.transaction(array, 'readwrite');
                             objectStore = transaction.objectStore(array);
                         }
@@ -539,25 +552,24 @@ async function processObject(data, newData, database, array, type) {
                     let count = objectStore.count();
                     count.onsuccess = function () {
                         if (data.$filter)
-                            data.$filter.count = count.result
+                            data.$filter.count = count.result;
                         else if (data.object.$filter)
-                            data.object.$filter.count = count.result
+                            data.object.$filter.count = count.result;
                     }
 
                     if (data.$filter) {
                         if (data.$filter.index)
-                            index = data.$filter.index
+                            index = data.$filter.index;
                         if (data.$filter.limit)
-                            limit = data.$filter.limit
+                            limit = data.$filter.limit;
                     }
 
                     if (data[type][i].$filter) {
                         if (data[type][i].$filter.index)
-                            index = data[type][i].$filter.index
+                            index = data[type][i].$filter.index;
                         if (data[type][i].$filter.limit)
-                            limit = data[type][i].$filter.limit
+                            limit = data[type][i].$filter.limit;
                     }
-
                 } else if (data.method == 'object.delete' || data.method == 'object.update' && !range && !upsert && !isFilter) {
                     continue
                 }
@@ -771,6 +783,7 @@ function createData(data, newData, type) {
 }
 
 function errorHandler(data, error, database, array) {
+    console.error(error, data)
     if (typeof error == 'object')
         error['storage'] = 'indexeddb'
     else
