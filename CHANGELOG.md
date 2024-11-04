@@ -1,3 +1,18 @@
+# [1.23.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.22.5...v1.23.0) (2024-11-04)
+
+
+### Bug Fixes
+
+* check if index exists prior to creating ([02ebd6a](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/02ebd6a2805fafdea2db86778415454900c77b93))
+* pretier.config.js and file formating ([5d0ab6f](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/5d0ab6f853db6a3b21321d61fd467cc426b4bc4b))
+
+
+### Features
+
+* add prettier.config.js and format files ([103e46c](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/103e46cb1c03e7c1e40ebbe5d8ed49bb960d93bc))
+* add prettier.config.js and format files ([e426992](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/e4269921938ba3e85233942f133a5f37c42a482a))
+* handling of indexes name and associted fields. add _id to field for pagination ([d667c64](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/d667c64fed8a46daa163e7238085fe3dd79be8dd))
+
 ## [1.22.5](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.22.4...v1.22.5) (2024-06-12)
 
 
