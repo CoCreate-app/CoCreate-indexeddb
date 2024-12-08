@@ -986,13 +986,13 @@ function createData(data, newData, type) {
 
 function errorHandler(data, error, database, array) {
 	console.error(error, data);
-	if (typeof error == "object") error["storage"] = "indexeddb";
-	else error = { storage: "indexeddb", message: error };
+	// if (typeof error == "object") error["storage"] = "indexeddb";
+	// else error = { storage: "indexeddb", message: error };
 
-	if (database) error["database"] = database;
-	if (array) error["array"] = array;
-	if (data.error) data.error.push(error);
-	else data.error = [error];
+	// if (database) error["database"] = database;
+	// if (array) error["array"] = array;
+	// if (data.error) data.error.push(error);
+	// else data.error = [error];
 }
 
 init();
