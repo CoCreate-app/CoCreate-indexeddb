@@ -1,3 +1,11 @@
+## [1.23.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.23.0...v1.23.1) (2024-12-14)
+
+
+### Bug Fixes
+
+* commented error log on data.error as we can use console.error ([c23b00c](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/c23b00c921d66016cfe5aedbf563b97e8f1156f1))
+* formating ([295ac01](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/295ac01e3a4fad1c41f56aaa7a1f68563c7f3ec1))
+
 # [1.23.0](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.22.5...v1.23.0) (2024-11-04)
 
 
