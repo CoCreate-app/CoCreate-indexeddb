@@ -314,6 +314,10 @@ async function processArray(data, newData, database, type) {
 	if (data.method == "array.read") {
 		if (!data[type]) data[type] = [];
 
+		if (!Array.isArray(data[type])) {
+			data[type] = [data[type]];
+		}
+
 		for (let i = 0; i < objectStoreNames.length; i++) {
 			if (data.$filter && data.$filter.query) {
 				let isFilter = queryData(
