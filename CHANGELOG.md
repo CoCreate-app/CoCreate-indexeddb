@@ -1,3 +1,14 @@
+## [1.23.2](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.23.1...v1.23.2) (2025-04-30)
+
+
+### Bug Fixes
+
+* added css-loader ([e4d034d](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/e4d034df917477f594ee0da932fc3001f2c080f3))
+* array.read ([2e54944](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/2e54944fe4ece8b821681ee882f1337e04818128))
+* update query attributes ([b56afaf](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/b56afaf182f83ea437af96434551434d7145493c))
+* updated cocreate modules versions ([4bf0cc5](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/4bf0cc512d8c943c02b7ff2422c5b9431c70774a))
+* webpack.config and devdependencies ([c529858](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/c5298587d681230f26cc60aa7a417d655a49b1ea))
+
 ## [1.23.1](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.23.0...v1.23.1) (2024-12-14)
 
 
