@@ -1,3 +1,10 @@
+## [1.23.4](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.23.3...v1.23.4) (2026-02-04)
+
+
+### Bug Fixes
+
+* update worklow ([67c0e72](https://github.com/CoCreate-app/CoCreate-indexeddb/commit/67c0e72e13d165375574a03de387fe2c5ec3b14a))
+
 ## [1.23.3](https://github.com/CoCreate-app/CoCreate-indexeddb/compare/v1.23.2...v1.23.3) (2025-05-01)
 
 
